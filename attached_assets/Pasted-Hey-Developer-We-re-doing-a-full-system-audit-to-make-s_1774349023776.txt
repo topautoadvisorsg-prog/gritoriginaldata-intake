@@ -1,0 +1,41 @@
+Hey [Developer],
+
+We’re doing a full system audit to make sure everything is clean, safe, and production-ready. Follow these steps carefully, and report back with findings, blockers, or recommendations.
+
+1. Read & Update Documentation
+Read your own README and any internal documentation.
+Update or annotate anything that’s outdated or unclear.
+Note any missing setup instructions or ambiguous info.
+2. Code Quality
+Check for broken code, unused files, or junk.
+Flag anything that can be removed or refactored.
+Confirm that code is clean, readable, and maintainable.
+3. Data Safety & Storage
+Identify where all data is stored (mock data now, production later).
+Verify that mock/test data is safe and cannot accidentally delete real project data.
+Confirm Supabase setup (or any DB) is correct, secure, and ready for production.
+4. Field & Schema Audit
+Ensure all fields needed for the app exist and are synchronized between main app ↔ data engine.
+Verify types, optional vs mandatory fields, default values.
+Make sure future pushes or API integrations won’t break because of missing fields.
+5. API Keys & Configuration
+Confirm that all API keys are UI-driven and not hard-coded.
+Make sure all agents have fields for their keys (Supabase, Anthropic/Claude, Brave, NanoBanana, Data Engine API).
+Test that entering keys in the UI actually works with the pipeline.
+6. Testing / Verification
+Run a full end-to-end test using the upcoming Adesanya vs. Joe Pyfer card:
+Event scanning → fighter scraping → fight history → image generation → push to webhook → main app update
+Confirm all data fields populate correctly.
+Note any errors, missing data, or failed pushes.
+7. Architecture / Reliability
+Think like an app architect:
+Are the systems robust and maintainable?
+Are there single points of failure?
+Can data survive a reset, migration, or deployment move?
+Is the pipeline fully automated and consistent between agents?
+8. Deliverables
+Document everything found: broken code, missing fields, misconfigurations.
+Confirm what’s working, what’s partially working, and what’s blocking progress.
+Include suggestions for what needs immediate action vs. what can wait.
+
+Goal: after this audit, we should have full confidence that both the main app and the data engine are aligned, safe, and ready for live testing.

@@ -1,0 +1,101 @@
+ood — this confirms the core structure is correct.
+
+We now need to lock a few decisions and implement specific updates to ensure the system is future-proof for analytics, filtering, and prediction modeling.
+
+1. Event Fields Structure ✅ (Confirmed)
+
+Flat fields (event_name, event_date, event_promotion) are correct.
+
+No changes needed.
+
+2. Fight Records Structure ✅ (Confirmed)
+One fight per row
+Fully structured columns
+No blob storage
+
+This matches requirements.
+
+3. REQUIRED UPDATE — Missing Fields in Push Payload ⚠️
+
+You identified that several fields exist in the DB but are not being sent in the push payload:
+
+weight_class
+event_promotion
+referee
+billing
+🔥 Decision:
+
+We want these INCLUDED in the push payload.
+
+👉 Action Required:
+
+Update the fight history payload builder to include ALL relevant structured fields, not just a subset.
+
+Requirement:
+Any field stored in the fight_history table that is useful for:
+filtering
+analytics
+modeling
+→ should be included in the outbound payload
+4. LOCATION FIELD (JSONB) ⚠️
+
+Current state:
+
+Stored as JSONB
+Mostly empty
+Decision:
+Leave as-is for now
+Do NOT block ingestion on this
+
+👉 Future option (not now):
+
+Flatten into:
+event_city
+event_country
+5. BIO FIELD (TEXT JSON STRING) ⚠️
+
+Current state:
+
+Stored as TEXT
+Not queryable internally
+Decision:
+Acceptable for now (display-focused)
+No immediate change required
+
+👉 Future upgrade:
+
+Convert to JSONB if we need filtering inside bio
+6. INDEXING (Performance – Future Task)
+
+No immediate action required, but plan for:
+
+fighter_id
+event_date
+event_name
+
+👉 Add indexes when dataset grows (not now)
+
+7. FINAL VALIDATION AFTER UPDATE
+
+After updating the payload:
+
+Run:
+
+1 fighter push
+1 fight push
+
+Confirm:
+
+All fields (including new ones) are present in payload
+Data is successfully received by main app
+No schema rejection occurs
+8. Output Required
+
+Return:
+
+Updated payload structure (full example)
+List of all fields now included
+Confirmation ingestion still succeeds
+Any fields rejected by main app (if any)
+
+Goal: Ensure no meaningful fight data is lost between DB → payload → main app.

@@ -1,0 +1,146 @@
+Subject: Ingestion Must Support Multi-Paste Merge (No Auto-Overwrite)
+
+We need to change the ingest behavior. Right now, every new paste overwrites previous parsed data — this is incorrect.
+
+We need accumulation + merge behavior, not replace.
+
+🚨 CURRENT PROBLEM
+Operator pastes UFCStats → parses ✅
+Then pastes Tapology → ❌ deletes previous data
+
+👉 This breaks workflow because:
+
+Data comes from multiple sources
+Operator needs to combine inputs progressively
+✅ REQUIRED CHANGE: “MERGE MODE”
+1. SESSION-BASED INGESTION
+
+Each ingest session should persist:
+
+{
+  "session_id": "uuid",
+  "type": "fighter_profile" | "fight_history",
+  "aggregated_data": {}
+}
+
+👉 This object is NOT reset on every paste
+
+2. NEW INPUT BEHAVIOR
+
+When operator pastes new raw text:
+
+Paste → Parse → Merge into existing aggregated_data
+3. FIELD MERGE RULES (VERY IMPORTANT)
+
+For each field:
+
+Case A — Field is EMPTY
+
+→ Fill it
+
+existing: null
+incoming: "76 in"
+result: "76 in"
+Case B — Field already HAS value
+
+👉 DO NOT overwrite automatically
+
+Instead:
+
+Keep existing value
+Store new value as candidate
+reach_inch:
+  current: 80
+  candidate: 79
+UI should show:
+Reach:
+[ 80 ]  (current)
+[ 79 ]  (new suggestion)
+[Use New] button
+4. NO AUTO-DELETE
+
+👉 New paste should NEVER:
+
+Clear previous data
+Reset session
+5. ADD CONTROLS (IMPORTANT)
+Buttons:
+[Clear Session] → wipes everything manually
+[Undo Last Paste] → removes last parsed merge
+[Replace Mode Toggle] (optional)
+6. MULTI-SOURCE SUPPORT (CORE FEATURE)
+
+Operator should be able to do:
+
+Paste from UFCStats
+Paste from Tapology
+Paste from Sherdog
+
+👉 System merges all into ONE fighter profile
+
+7. FIGHT HISTORY MERGE (SPECIAL CASE)
+
+For fight history:
+
+👉 Do NOT overwrite list
+
+Instead:
+
+Append new fights
+Deduplicate by:
+(event_name + opponent_name + date)
+8. UI REQUIREMENT (THIS IS WHY IT FEELS BAD RIGHT NOW)
+
+Show:
+
+“Aggregated Profile View”
+
+Not just last parse.
+
+Example:
+Name: Israel Adesanya
+Height: 76 in
+Reach: 80 in
+Gym: City Kickboxing
+
+[Conflicts]
+Reach:
+  Current: 80
+  New: 79
+  [Accept New]
+9. APPROVAL STILL FINAL STEP
+
+Only when operator clicks:
+
+Approve
+
+→ THEN insert into DB
+
+🧠 WHY THIS MATTERS
+
+Your workflow is:
+
+Multi-source
+Incremental
+Manual-assisted
+
+👉 The system MUST behave like a workspace, not a form.
+
+💥 WHAT YOU GET AFTER THIS
+
+Instead of:
+
+❌ Paste → lose data → start over
+
+You get:
+
+✅ Paste → build profile gradually
+✅ Combine multiple sources
+✅ Resolve conflicts manually
+✅ Zero frustration
+
+🧠 Simple Way to Explain It
+
+Tell him this line if nothing else:
+
+“Treat ingestion like a Google Doc, not a form submit. Every paste adds, nothing deletes unless I click delete.”

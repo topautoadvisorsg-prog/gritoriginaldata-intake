@@ -1,0 +1,46 @@
+Okay, great job. So what do you need right now in order for you to start doing your fucking job and start pushing information over to the fucking main app and start testing? What do you need? Where are we at right now, all right? Fucking audit. Tell, give us a fucking breakdown.
+
+Let me do a thorough audit of everything right now before giving you a straight answer.
+
+Now I have the full picture. Here's the complete honest breakdown:
+
+What's Actually Built vs. What's Blocking You
+✅ DONE — Solid, Real Code
+Full push contract — all 5 push methods (fighter, fight history, event, news, odds) target the right webhook endpoint with the right payload shape
+DB schema + migration SQL — complete, ready to run
+Agent 1 (Event Scanner) — real code, searches Brave for Tapology URL, scrapes fight card, queues fighters
+Agent 2 (Profile) — real code, Tapology + Sherdog + Claude verification
+Agent 3 (History) — real code, scrapes bouts + generates AI brief
+Agent 4 (News Intelligence) — real code, Brave search + Claude + saves to DB
+Claude client — real Anthropic SDK integration
+Brave Search client — real API integration
+Frontend UI — 7-tab dashboard with all pages wired up
+🔴 HARD BLOCKERS — Nothing moves until these are resolved
+1. Supabase is paused — The database URL doesn't resolve at all right now. Every single API call 500s because of this. You need to go to supabase.com, unpause the project, and then run the migration SQL (database/migrations/v2_extend_columns.sql) to add all the new columns. Without this, nothing stores or reads.
+
+2. MAIN_APP_API_URL env var is missing — The pipeline silently skips every push because this returns empty. Need the base URL of the GRIT main app (e.g. https://your-grit-app.com).
+
+3. DATA_ENGINE_API_KEY is missing — The webhook auth header sends None. The main app will reject every request.
+
+4. ANTHROPIC_API_KEY is missing — Agents 2, 3, and 4 all call Claude. Without this, verification and brief generation silently fail and return empty dicts.
+
+5. BRAVE_API_KEY is missing — Agents 1, 2, and 3 use Brave Search to find Tapology/Sherdog URLs for fighters. Without this, the pipeline can't find any pages to scrape.
+
+🟡 STUBS — Work needs to be done here too, but less urgent
+Agent 6 (Odds) — Both scrapers return hardcoded fake numbers. Real scraping against BestFightOdds not implemented yet.
+
+Agent 7 (Image) — The Replicate model version is a placeholder (da776659... — fake). Needs a real model ID and REPLICATE_API_KEY.
+
+Scraper CSS selectors — The Tapology/Sherdog scrapers have real structure but the selectors (.fighter_history_table, .fightCard, .details_section, etc.) are educated guesses. They will likely need tuning once we can actually hit the sites.
+
+What I Need From You Right Now
+To unblock everything and get to a real test push:
+
+Unpause your Supabase project at supabase.com, then run the migration SQL
+Give me these 4 env vars (or confirm they exist):
+MAIN_APP_API_URL — base URL of the GRIT main app
+DATA_ENGINE_API_KEY — the key the main app expects in the x-data-engine-api-key header
+ANTHROPIC_API_KEY — your Anthropic key
+BRAVE_API_KEY — your Brave Search key
+Optional now, needed soon: REPLICATE_API_KEY + the real Replicate model version for image gen
+Once those 5 env vars are set and Supabase is live, I can run a real end-to-end test: scan an event → scrape fighters → push to GRIT → confirm it lands. That's the first real test. Want me to create a task for fixing the scraper selectors and odds scraper in parallel while you handle the Supabase/env side?

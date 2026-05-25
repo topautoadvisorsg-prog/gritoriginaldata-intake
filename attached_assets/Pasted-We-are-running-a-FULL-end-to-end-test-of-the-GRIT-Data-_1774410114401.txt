@@ -1,0 +1,111 @@
+We are running a FULL end-to-end test of the GRIT Data Engine.
+
+Goal: Successfully ingest ONE complete UFC event card and push it to the main GRIT app with clean, verified data.
+
+This is not partial. This is a FULL pipeline validation.
+
+----------------------------------------
+STEP 1 — EVENT SCAN
+----------------------------------------
+- Use POST /events/scan
+- Input: Exact UFC event name (e.g. "UFC 300")
+- Source: UFCStats (primary), Brave fallback
+
+Expected:
+- Event created in Supabase
+- event_fights populated ONLY for fighters already in DB
+- New fighters added to .pipeline_queue.json
+
+----------------------------------------
+STEP 2 — PROCESS QUEUE
+----------------------------------------
+- Run POST /pipeline/process-queue
+
+This should trigger:
+Agent 2 → Profile collection (Sherdog + Claude)
+Agent 3 → Fight history + AI Brief
+Agent 7 → SKIP IMAGE GENERATION (DO NOT RUN OR DISABLE)
+
+Expected per fighter:
+- fighters table populated
+- fight_history populated
+- bio (AI Brief JSON) filled
+- is_verified = true (if Claude succeeds)
+
+----------------------------------------
+IMPORTANT — IMAGE HANDLING
+----------------------------------------
+DO NOT generate images via Agent 7.
+
+Images are now handled manually by the operator.
+
+Ensure:
+- image_url and body_image_url remain NULL
+- No attempt to call OpenAI image generation
+
+----------------------------------------
+STEP 3 — VERIFY DATA IN SUPABASE
+----------------------------------------
+For EACH fighter, confirm:
+
+- first_name / last_name correct
+- record (wins/losses/draws) correct
+- height/reach populated (or "Unknown")
+- fight_history entries exist
+- bio JSON is NOT empty
+
+If Claude returns {}:
+- LOG IT
+- DO NOT silently accept without noting
+
+----------------------------------------
+STEP 4 — PUSH TO GRIT MAIN APP
+----------------------------------------
+For EACH completed fighter:
+
+- Call:
+POST /pipeline/push/fighter/{id}
+
+Expected:
+- Fighter appears in GRIT main app
+- No duplicates created
+- Data maps correctly
+
+----------------------------------------
+STEP 5 — EVENT + FIGHTS SYNC
+----------------------------------------
+Ensure:
+- event exists in GRIT
+- event_fights correctly linked
+- Fighters correctly assigned to bouts
+
+If event_fights missing due to timing:
+- Re-run linking AFTER fighters are created
+
+----------------------------------------
+STEP 6 — LOG ALL ISSUES
+----------------------------------------
+If ANY of the following occurs:
+
+- Missing fighter data
+- Claude returns empty {}
+- Duplicate fighter created
+- event_fights not linking
+- Push to GRIT fails
+- Webhook rejected
+- Supabase write fails
+
+Log it EXACTLY like:
+
+[ISSUE]
+What happened:
+Where it happened:
+Expected behavior:
+Actual behavior:
+
+----------------------------------------
+DO NOT SKIP STEPS.
+DO NOT PATCH AROUND ISSUES.
+LOG EVERYTHING.
+
+We are validating the pipeline, not hiding problems.

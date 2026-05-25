@@ -1,0 +1,220 @@
+You're right. The architecture is not being explained clearly enough and that is why he is struggling. Let me break this down properly and give him everything he needs.
+Here is what needs to happen. Send this to the data engine developer:
+
+DATA ENGINE — FULL ARCHITECTURE EXPLANATION AND AGENT REBUILD GUIDE
+Stop what you are doing. Read this entire document before touching a single file. This is the complete picture of what this system is, how it works, and exactly what each agent needs to do. Once you understand this fully everything will make sense.
+
+WHAT THIS SYSTEM IS
+The data engine is a completely separate server from the main app. Its only job is to go out to the internet, collect MMA data, clean it, and push it to the main app via API. The main app receives it, admin reviews it, approves it, and it goes live on the platform.
+Think of it like a news wire service. It runs in the background constantly. It finds things. It packages them cleanly. It sends them over. That is it.
+
+THE TOOLS AVAILABLE FOR SCRAPING
+You have two scraping tools available. Use them correctly.
+BeautifulSoup4 — for simple HTML pages
+Use this when a page loads its content in plain HTML without JavaScript. Tapology, Sherdog, BestFightOdds all serve their main content in HTML. BeautifulSoup reads the HTML and extracts the data. Fast, free, no API cost.
+Firecrawl — for JavaScript heavy pages or when BS4 fails
+Firecrawl is a web scraping API that can handle pages that require JavaScript to load content. Use it as a fallback only when BeautifulSoup cannot get the data. It costs API credits so do not use it unless BS4 fails. Set FIRECRAWL_API_KEY in environment variables.
+Brave Search API — for finding URLs
+When you need to find a fighter's profile page on Sherdog or Tapology use Brave Search. Search for the fighter name plus the site. Get the URL. Then scrape that URL with BS4 or Firecrawl. Do not use Brave Search to get the actual data — use it only to find the right URL.
+Claude — for verification and AI briefs only
+Claude does not scrape anything. Claude receives data that has already been scraped and does two things only. First it verifies the data looks correct and flags anything suspicious. Second it generates the AI brief — the fighting style summary, strengths, weaknesses, prediction insight. That is all Claude does. Do not use Claude to extract data from web pages. Scrape first. Then pass clean data to Claude.
+Do not use CrewAI as a wrapper around single functions
+CrewAI is for multi-agent workflows where agents delegate tasks to each other. If an agent only does one thing call that thing directly. No CrewAI wrapper needed. It adds overhead with no benefit.
+
+THE ADMIN DASHBOARD — YOU NEED TO SEE EVERYTHING
+This is critical and it has not been built properly yet. The owner wants to see everything that is happening in real time. Here is exactly what the admin dashboard data engine section needs to show:
+Pipeline Queue Tab
+Every record that has been pushed to the main app and is waiting for admin review. For each record show:
+
+Record type — fighter, fight history, event, news, intelligence, odds
+Fighter name or event name
+All fields that were collected — every single one visible
+Source — where the data came from, Sherdog, Tapology, UFCStats, BestFightOdds
+Timestamp when it was pushed
+Status — pending, approved, rejected, applied
+Approve button
+Reject button
+Edit button — admin can fix any field before approving
+
+Fighter Profile Preview
+When admin clicks on a pending fighter record they see a full preview of exactly how that fighter profile will look in the main app. All fields laid out cleanly. Profile image if available. Stats. Fight record summary. AI brief. Everything. Admin sees exactly what users will see before approving.
+Fight History Preview
+When admin clicks on a pending fight history record they see a clean table of every bout. Opponent, date, result, method, round, time, event, all fields. Exactly how it will display in the app.
+Intelligence Feed Preview
+When admin clicks on a pending news or intelligence item they see the full article with the layer tag — standard or intelligence — and all the tags applied.
+Activity Log
+Every action the data engine has taken. Every scrape attempted. Every push sent. Every error encountered. Timestamped. Searchable. The owner can see exactly what is happening at any time.
+
+AGENT 1 — EVENT SCANNER — HOW IT SHOULD WORK
+Purpose: Find upcoming UFC events and build the fight card.
+Step by step:
+
+Search Brave for upcoming UFC events — query: UFC upcoming events schedule
+Get the UFCStats event page URL from the search result
+Scrape the event page with BeautifulSoup4
+Extract: event name, date, venue, city, country, organization, card placement for each bout, fighter names per bout, weight class, is title fight, number of rounds
+For each fighter on the card check the main app database — does this fighter already exist
+If fighter exists — skip, already have them
+If fighter does not exist — add to the processing queue for Agent 2
+Create the event record and fight card in the main app pipeline
+Calculate lockTime — set it to 1 hour before the event start time
+Push to main app via POST /api/webhooks/data-engine/webhook
+
+Fix needed — the scheduler:
+The daily_event_scan job currently has an empty body. Replace the pass with a real implementation that calls scan_and_record_event() for every UFC event in the next 60 days. This job runs every day at 8 AM UTC automatically.
+
+AGENT 2 — PROFILE COLLECTOR — HOW IT SHOULD WORK
+Purpose: Build a complete fighter profile. Runs once per fighter. Never runs again for the same fighter.
+Step by step:
+
+Take fighter name from the processing queue
+Search Brave for the fighter on Tapology — query: site:tapology.com fighter name
+Scrape Tapology profile with BeautifulSoup4
+Extract from Tapology: full name, nickname, date of birth, nationality, height, reach, gym, team, fighting out of, head coach, wins, losses, draws, no contests, ko wins, submission wins, decision wins, losses by ko, losses by submission, losses by decision, win percentage breakdowns, ranking, organization, is champion, twitter handle, instagram handle
+Search Brave for the fighter on Sherdog — query: site:sherdog.com fighter name
+Scrape Sherdog profile with BeautifulSoup4 as cross reference
+Search UFCStats for the fighter — query: site:ufcstats.com fighter name
+Scrape UFCStats for career striking stats: strikes landed per min, strike accuracy, strikes absorbed per min, strike defense, takedown avg, takedown accuracy, takedown defense, submission avg
+Pass all collected data to Claude for verification — Claude checks if the data looks correct, flags anything suspicious, normalizes inconsistencies between sources
+If Claude returns empty or flags critical errors — mark as error, do not push, log the issue
+Set needs_image to true — Agent 7 will handle the image
+Set verified to true after Claude verification passes
+Store the Tapology URL and Sherdog URL on the record for Agent 3 to reuse — do not make Agent 3 search for these again
+Push to main app via POST /api/webhooks/data-engine/webhook with sourceType fighter
+
+Fix needed — name normalization:
+Before any upsert normalize names. Lowercase. Trim. Check for existing records with fuzzy matching. Jon Jones and Jonathan Jones must not create two records.
+Fix needed — Claude failure handling:
+If Claude returns empty stop. Do not write defaults. Mark as error. Log it.
+
+AGENT 3 — HISTORY BUILDER — HOW IT SHOULD WORK
+Purpose: Build the complete professional fight history for a fighter. Runs once per fighter. Never runs again.
+Step by step:
+
+Take fighter name and Sherdog URL from the pipeline queue — Agent 2 already found this URL, reuse it, do not search again
+Scrape the fighter's full fight history from Sherdog with BeautifulSoup4
+For each professional bout extract: opponent name, result, method, method detail, round, time, fight duration in seconds, event name, event date, promotion, weight class, is title fight, title fight detail, billing, bout order, referee, location city, location country, judge scores
+For each bout check UFCStats individual fight page for detailed per-round stats: knockdowns, significant strikes landed and attempted, total strikes, takedowns, submission attempts, reversals, control time, head strikes, body strikes, leg strikes, distance strikes, clinch strikes, ground strikes
+Batch insert all bouts in one database operation — not one by one
+After all bouts are inserted pass the full fight history to Claude to generate the AI brief — fighting style summary, recent trend, strengths, weaknesses, prediction insight
+Store the AI brief in the fighter's bio field
+Push fight history to main app via POST /api/webhooks/data-engine/webhook with sourceType fight
+
+Fix needed — deduplication:
+Add unique constraint on fighter_id plus event_name plus opponent_name. On conflict update, do not insert duplicate.
+
+AGENT 4 — INTELLIGENCE AND REPORTING — HOW IT SHOULD WORK
+Purpose: Hunt for MMA news and intelligence signals continuously. Runs every 3 hours.
+Step by step:
+
+Pull the list of all active fighters who have bouts in the next 30 days from the main app
+For each fighter run targeted Brave Search queries:
+
+Fighter name plus injury
+Fighter name plus camp
+Fighter name plus withdrawal
+Fighter name plus UFC event name
+
+
+For general news run:
+
+UFC event name plus fight card
+UFC event name plus cancellation
+UFC event name plus replacement
+
+
+For each search result check if the URL already exists in news_articles — if yes skip it completely
+If URL is new fetch the full article body — use BeautifulSoup4 first, Firecrawl as fallback if the page requires JavaScript
+Pass the full article body to Claude — Claude extracts: is this standard news or an intelligence signal, what fighters are mentioned, what is the signal type, write a summary in The Connect voice — insider tone, talks to fans who watch every card and people with money on the line
+Set the layer field — standard or intelligence
+Apply relevant tags automatically based on content
+Push to main app via POST /api/webhooks/data-engine/webhook with sourceType news
+
+Fix needed — deduplication:
+Check URL uniqueness before any insert. Add unique constraint on article URL.
+Fix needed — fetch full article body:
+Do not just pass the title and snippet to Claude. Fetch the actual article. Claude needs context to write a good summary and extract real signals.
+
+AGENT 5 — SOCIAL MONITOR — PARK FOR NOW
+Not built. Not blocking anything. Leave it for a future sprint. Do not touch.
+
+AGENT 6 — ODDS SCRAPER — HOW IT SHOULD WORK
+Purpose: Collect moneyline odds for every upcoming bout daily.
+Step by step:
+
+Pull the list of all upcoming event fights from the main app
+For each fight scrape BestFightOdds.com for current moneylines using BeautifulSoup4
+If BestFightOdds fails go directly to OddsShark — skip Covers.com entirely, it is always blocked
+Extract: fighter 1 moneyline, fighter 2 moneyline, source, timestamp
+Each daily scrape is a new row in the odds history table — do not overwrite, append
+Push to main app via POST /api/webhooks/data-engine/webhook with sourceType odds
+
+Fix needed — remove Covers.com:
+Delete it. It never works. BestFightOdds primary, OddsShark fallback. Done.
+Fix needed — method odds:
+BestFightOdds serves method odds via JavaScript. BS4 cannot get them. Two options — use Firecrawl to render the page and get method odds, or integrate The Odds API which serves everything in JSON. For now skip method odds and note them as a future enhancement. Do not let this block the moneyline flow.
+
+AGENT 7 — IMAGE AGENT — HOW IT SHOULD WORK
+Purpose: Get a fighter image and store it.
+This needs a complete rethink. Here is the issue:
+DALL-E 3 generates random AI faces that look nothing like real fighters. This is a credibility problem. Users will immediately notice that Islam Makhachev looks like a random person.
+New approach — use real photos:
+
+After Agent 2 runs, take the Tapology profile URL that was already found
+Scrape the fighter's profile photo from Tapology using BeautifulSoup4 — it is right there on the page
+Download the image
+Resize and crop to two standard formats:
+
+Face profile: 400x400 square, head and shoulders, centered
+Half body: 400x600, waist up, no shorts branding visible, crop just above waistband
+
+
+Upload both to Supabase Storage in the fighter-images bucket
+Store the image URLs on the fighter record — imageUrl and bodyImageUrl
+Set needs_image to false
+
+This gives you real photos of actual fighters at no additional API cost. No DALL-E. No Replicate. Just scrape the photo that is already on Tapology.
+If Tapology has no photo:
+Set needs_image to true. Flag the fighter for manual image upload. Move on.
+Fix needed — Supabase Storage bucket:
+Add a startup check that confirms the fighter-images bucket exists and has public read access. If it does not exist create it automatically.
+
+ENVIRONMENT VARIABLES — COMPLETE LIST
+Make sure every one of these is set:
+SUPABASE_URL=
+SUPABASE_SERVICE_KEY=
+ANTHROPIC_API_KEY=
+BRAVE_API_KEY=
+FIRECRAWL_API_KEY=
+MAIN_APP_API_URL=
+MAIN_APP_API_KEY=
+Note — OPENAI_API_KEY and REPLICATE_API_KEY are no longer needed if you switch Agent 7 to scraping real photos from Tapology. Remove them from the codebase.
+
+WHAT TO BUILD NEXT — IN ORDER
+Do these one at a time. Report back after each one before moving to the next.
+
+Fix Agent 1 scheduler — implement daily_event_scan properly. This unlocks everything.
+Fix Claude failure handling in Agent 2 — stop silent failures corrupting the database
+Fix name normalization in Agent 2 — fuzzy matching, no duplicates
+Fix Agent 3 deduplication — unique constraint on fight history
+Fix Agent 4 deduplication — unique constraint on news URL
+Remove Covers.com from Agent 6
+Rebuild Agent 7 to scrape real photos from Tapology instead of generating AI faces
+Remove CrewAI from all single tool agents
+Remove dead code — TapologyScraper, find_event_url, duplicate parse_to_seconds
+Build the admin dashboard UI showing all pipeline activity, fighter previews, fight history previews, intelligence feed previews, and activity log
+
+
+THE ADMIN DASHBOARD IS NOT OPTIONAL
+The owner needs to see everything. Every field. Every record. Every action. Before you do anything else confirm that the admin pipeline dashboard shows:
+
+All incoming records with every field visible
+Full fighter profile preview before approval
+Full fight history table preview before approval
+Full news and intelligence preview before approval
+Activity log of everything the engine has done
+Any errors that occurred
+
+If any of these are missing build them now. The owner will not approve records blind.
+
+Report back after each fix. One at a time. Do not jump ahead.

@@ -1,0 +1,14 @@
+fastapi
+uvicorn
+supabase
+beautifulsoup4
+anthropic
+apscheduler
+python-dotenv
+pydantic
+pydantic-settings
+requests
+openai
+Pillow
+firecrawl-py
+python-multipart

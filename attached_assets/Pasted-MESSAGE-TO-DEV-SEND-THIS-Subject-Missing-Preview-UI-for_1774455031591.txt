@@ -1,0 +1,172 @@
+MESSAGE TO DEV (SEND THIS)
+
+Subject: Missing Preview UI for Ingestion + Fighter History Linking (Required Fix)
+
+We need to complete the ingestion workflow. Right now we can paste data, but we cannot see what was parsed before approval, which breaks the entire operator flow.
+
+🚨 CORE ISSUE
+
+Current state:
+
+Raw input exists ✅
+Parsing exists (Claude) ✅
+Database insert exists ✅
+
+Missing:
+
+❌ Parsed data preview UI
+❌ Approval step before insert
+❌ Fighter history linking to existing fighter
+✅ REQUIRED FEATURES
+1. PARSED DATA PREVIEW PANEL (CRITICAL)
+
+After operator pastes raw data and clicks Parse, return:
+
+{
+  "status": "preview",
+  "data": { structured fighter OR fight history }
+}
+UI REQUIREMENT:
+
+Show a full structured preview panel with editable fields.
+
+Fighter Profile Preview Example:
+Name: Israel Adesanya
+Record: 24-3
+Height: 76 in
+Reach: 80 in
+Gym: City Kickboxing
+Striking Stats:
+  SLpM: 3.96
+  Accuracy: 0.51
+
+👉 ALL fields must be visible (not partial)
+
+Controls:
+[Approve ✅]
+[Edit ✏️]
+[Reject ❌]
+2. APPROVAL FLOW (MANDATORY)
+NOTHING gets inserted until:
+
+User clicks:
+
+Approve
+
+Then:
+
+Insert into fighters
+Set:
+is_verified = false
+3. FIGHTER HISTORY FLOW (SEPARATE — IMPORTANT)
+Step 1: SELECT FIGHTER
+
+UI dropdown:
+
+Select Fighter:
+[ Israel Adesanya ]
+
+(Pulls from fighters table)
+
+Step 2: PASTE RAW HISTORY
+
+From:
+
+Tapology
+UFCStats
+Step 3: PARSE → PREVIEW
+
+Show list like:
+
+Fight 1:
+Opponent: Alex Pereira
+Result: Loss
+Method: KO
+Round: 5
+
+Fight 2:
+Opponent: Jared Cannonier
+Result: Win
+Method: Decision
+Step 4: APPROVE
+
+On approve:
+
+Insert ALL fights into fight_history
+Link using:
+fighter_id
+4. FIGHTER PROFILE VIEW (AFTER APPROVAL)
+
+Once both are done:
+
+Fighter Card should show:
+Profile info
+Stats
+Images (manual upload)
+✅ Fight History section (list of fights)
+5. VERIFICATION FLOW (FINAL STEP)
+
+After reviewing everything:
+
+User clicks:
+
+Verify Fighter
+
+Then:
+
+is_verified = true
+6. PUSH LOCK
+
+ONLY allow push to main app if:
+
+is_verified = true
+🧠 FULL OPERATOR FLOW (THIS IS WHAT WE’RE BUILDING)
+Step 1:
+
+Paste fighter profile → Parse → Preview → Approve
+
+Step 2:
+
+Select fighter → Paste fight history → Parse → Preview → Approve
+
+Step 3:
+
+Review full fighter (profile + history)
+
+Step 4:
+
+Click Verify
+
+Step 5:
+
+Push to main app
+
+🔥 WHY THIS IS IMPORTANT
+
+Right now:
+
+You insert blind ❌
+You get garbage data ❌
+You can’t trust anything ❌
+
+With this:
+
+You SEE everything before saving ✅
+You CONTROL data quality ✅
+You BUILD complete fighters step-by-step ✅
+💥 WHAT YOU SHOULD SEE AFTER THIS IS BUILT
+
+When you click a fighter:
+
+You get a full page:
+
+[Header]
+Name | Weight Class | Record | Verified Badge
+
+[Profile Section]
+Height, Reach, Gym, Stats...
+
+[Images Section]
+Headshot | Body Image
+
+[Fight History Section]

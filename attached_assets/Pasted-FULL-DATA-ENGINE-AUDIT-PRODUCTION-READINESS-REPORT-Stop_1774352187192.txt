@@ -1,0 +1,131 @@
+FULL DATA ENGINE AUDIT — PRODUCTION READINESS REPORT
+Stop everything. I need a complete honest audit of the entire data engine before we connect it to the main app. Read every word.
+
+STEP 1 — READ THE README COMPLETELY
+Read the entire data engine README from top to bottom. Every agent. Every rule. Every flow. That is your source of truth for this audit.
+
+STEP 2 — AGENT BY AGENT STATUS
+Go through every agent and give me a completion percentage and honest status:
+Agent 1 — Event Agent
+Scans upcoming UFC event cards. Finds every fighter on the card. Checks DB for existing fighters. Creates event and fight card records.
+
+Completion percentage
+What is working
+What is not working
+What is needed to get to 100%
+
+Agent 2 — Profile Agent
+Scrapes fighter profile once, never again. Collects all fields from sync bible. Cross references Tapology and Sherdog. Claude verifies. Verified flag set. Passes fighter to Agent 7 then Agent 3.
+
+Completion percentage
+What is working
+What is not working
+What is needed to get to 100%
+
+Agent 3 — History Agent
+Scrapes full fight history once, never again. Every bout with all fields from sync bible. Generates AI brief using Claude.
+
+Completion percentage
+What is working
+What is not working
+What is needed to get to 100%
+
+Agent 4 — Intelligence and Reporting Agent
+Hunts news and intelligence signals on configurable schedule. Two layers — standard reporting and intelligence signals. Writer persona The Connect. Runs every 3 hours by default.
+
+Completion percentage
+What is working
+What is not working
+What is needed to get to 100%
+
+Agent 5 — Social Monitor
+Watches fighter Twitter and Instagram. Two modes — deep scan for fighters with bout in next 30 days, light watch for active fighters with no upcoming bout. Modes assigned automatically.
+
+Completion percentage
+What is working
+What is not working
+What is needed to get to 100%
+
+Agent 6 — Odds Agent
+Scrapes BestFightOdds.com daily. Backup covers.com. Collects all odds fields per bout. Each daily pull is a new row for line movement tracking. Lands in staging for admin approval.
+
+Completion percentage
+What is working
+What is not working
+What is needed to get to 100%
+
+Agent 7 — Image Agent
+Runs after Agent 2. Finds reference photo from Tapology or Sherdog. Sends to Replicate API. Generates standardized AI portrait. Stores image URL on fighter record. Flags needs_image if no reference photo.
+
+Completion percentage
+What is working
+What is not working
+What is needed to get to 100%
+Note: Replicate API key is not loaded yet. Confirm everything else is ready so when key is loaded it fires immediately.
+
+Agent 8 — Analyst Tracker
+Parked. Receives YouTube analyst prediction transcripts via POST endpoint. Extracts picks. Pushes structured JSON to main app.
+
+Confirm this is parked and not blocking anything else
+
+
+STEP 3 — PIPELINE AND SYNC READINESS
+Confirm the following:
+
+POST to main app /api/webhooks/data-engine/webhook is configured and ready to fire
+x-data-engine-api-key header is being sent with every request
+API key value on your end matches what is set in main app system settings — confirm both sides match
+Payload format for every source type matches the sync bible exactly — fighter, fight history, event, news, odds
+All required fields are being populated, all optional fields handled gracefully when not available
+Retry logic exists if main app returns an error — what happens if a push fails
+Rate limiting — are you controlling how fast you push data to avoid overwhelming the main app
+
+
+STEP 4 — DATA QUALITY
+This is critical. The main app displays whatever you push. If your data is wrong users see wrong data.
+Tell me:
+
+How are you verifying fighter stats are accurate before pushing
+How are you handling fighters with incomplete data on Tapology or Sherdog
+How are you handling fight history where some fields are missing
+What happens if Claude verification flags something as inaccurate
+Are there any known data quality issues with specific fighters or weight classes
+
+
+STEP 5 — SCHEDULING AND AUTOMATION
+Confirm every scheduled task:
+
+Event scan — how often, what triggers it
+Profile agent — confirms one time only per fighter, never re-scrapes
+History agent — confirms one time only per fighter, never re-scrapes
+Intelligence agent — every 3 hours by default, configurable via config table confirmed
+Social monitor — deep scan vs light watch modes switching automatically based on fight_cards table
+Odds agent — daily scrape confirmed
+
+Is the scheduler running correctly. Are all jobs registering on startup. Is there a way to monitor which jobs have run and when.
+
+STEP 6 — WHAT DO YOU NEED
+Tell me exactly what you need to go from current state to fully operational:
+
+API keys — list every key that is missing and what it unlocks
+Any other blockers
+What is the first thing you would push to the main app once keys are loaded and connection is confirmed
+
+Be specific. If Replicate API key is the only thing blocking Agent 7 say that clearly. If there are other keys or blockers list them all.
+
+STEP 7 — PRODUCTION READINESS SCORE
+Give me an honest overall score out of 100 for production readiness. Break it down:
+
+Agent 1 Event: X out of 100
+Agent 2 Profile: X out of 100
+Agent 3 History: X out of 100
+Agent 4 Intelligence: X out of 100
+Agent 5 Social Monitor: X out of 100
+Agent 6 Odds: X out of 100
+Agent 7 Image: X out of 100
+Pipeline and sync: X out of 100
+Overall: X out of 100
+
+Then tell me — what are the top 3 things that if resolved right now would get the data engine to production ready.
+
+No changes during this audit. Read only. Report back with everything organized by section. Be thorough. Be honest. This determines what we fix before we connect the two servers and go live.

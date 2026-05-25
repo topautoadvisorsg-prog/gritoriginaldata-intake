@@ -1,0 +1,122 @@
+We need a full audit of the ingestion system based on its actual purpose.
+
+This is not a bug fix request. This is a workflow validation.
+
+🎯 1. SYSTEM PURPOSE (non-negotiable)
+
+The ingestion system must allow:
+
+Fast weekly event processing
+Minimal manual input
+Zero repeated work
+No unnecessary API re-calls
+Clean structured data ready for Supabase
+Seamless handoff to main app (events, fights, analytics)
+
+If any part of the system slows this down → it is a failure.
+
+🔁 2. REQUIRED WORKFLOW (validate step-by-step)
+
+Audit the system against THIS exact flow:
+
+Step 1 — Event Input
+Input event name
+System fetches full fight card
+
+✅ Expected:
+
+One API call only
+Full card returned
+Step 2 — Fighter Cross-Reference
+System checks every fighter
+
+✅ Expected:
+
+Clear status:
+exists
+missing
+Step 3 — Add Missing Fighters
+Click “Add”
+Enter raw data
+Save fighter
+
+✅ Expected:
+
+NO reset of event scan
+Fighter updates to “exists” instantly
+No re-scan required
+Step 4 — Continue Until Complete
+
+✅ Expected:
+
+Workflow persists until ALL fighters are resolved
+No duplicated work
+No lost state
+Step 5 — Output Ready for Main App
+
+✅ Expected:
+
+All fighters exist
+Data structured correctly
+Ready for event/fight creation
+❌ 3. CURRENT FAILURES (already observed)
+
+Audit and confirm:
+
+Event scan resets after fighter creation
+No persistence of scan state
+No ingestion validation (fields parsed vs missing)
+UI breaks workflow continuity
+Repeated API usage required
+🔍 4. REQUIRED AUDIT OUTPUT
+
+Provide a structured report:
+
+A. Workflow Gaps
+
+For each step above:
+
+What works
+What breaks
+Why it breaks
+B. Missing Components
+
+List ALL missing pieces required for:
+
+Persistence
+Data validation
+Workflow continuity
+C. Redundant / Wasteful Operations
+
+Identify:
+
+Where API calls are repeated unnecessarily
+Where user is forced to redo work
+D. Data Integrity Risks
+
+Check:
+
+Duplicate fighter risk
+Incomplete field storage
+Mapping issues with Supabase schema
+E. Fix Plan (MANDATORY)
+
+Provide:
+
+Exact fixes required
+Where they apply (backend / frontend)
+Estimated effort per fix
+⚠️ 5. EXPECTATION
+
+This system must behave like a production ingestion tool, not a set of disconnected utilities.
+
+If anything breaks the workflow:
+
+It must be identified
+It must be fixed
+🧠 What this does
+
+This forces them to:
+
+Stop thinking in features
+Start thinking in end-to-end workflow

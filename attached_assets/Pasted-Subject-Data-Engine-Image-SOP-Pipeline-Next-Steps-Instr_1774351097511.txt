@@ -1,0 +1,42 @@
+Subject: Data Engine – Image SOP + Pipeline Next Steps
+
+Instructions:
+
+Hey [Data Engine Developer],
+
+Here’s your action plan to continue processing fighter/event data correctly:
+
+1️⃣ Pipeline
+Keep the pipeline running with live Adesanya vs. Pyfer card.
+Ensure all fighter/event/fight history payloads are correctly inserted into Supabase.
+Confirm that stance, gym, head_coach, is_active, is_champion, is_verified, and image_url fields all have defaults applied to avoid NOT NULL issues.
+2️⃣ Nano Banana (fal.ai)
+API key is configured in the UI.
+Funding will be added shortly. Once funded, images should generate automatically.
+Update image generation calls to always use _get_key() at runtime to prevent empty keys.
+3️⃣ Image Standard Operating Procedure (SOP)
+Purpose: Only two types of fighter images will be used:
+Profile / Headshot: Face/head picture for mobile and web.
+Half-body: Torso and above, for web or other display areas.
+Source: Official UFC pages (or equivalent trusted sources).
+Prompt Standardization:
+Maintain consistent lighting, background, and style.
+Headshot: close-up face, centered, neutral background.
+Half-body: mid-torso centered, neutral background.
+No full-body images.
+Store generated images in image_url and separate fields if needed (headshot_url, half_body_url).
+4️⃣ Data Handling
+All collected data (fighters/events/fights) must go into Supabase as the single source of truth.
+Do not hard-code any API keys or paths; always use UI fields.
+Reset and clear any failed queue entries after fixes are applied.
+5️⃣ Testing
+After images are generated and fighters/events are processed, validate:
+All fields match schema (no nulls in NOT NULL columns).
+Images follow SOP (2 types only).
+Auto-push to GRIT will succeed once webhook exists.
+
+✅ Outcome:
+
+Main App receives full fighter/event info once webhook is ready.
+Data Engine continues live pipeline with images standardized and API keys properly loaded.
+You will have a consistent, repeatable workflow for every card moving forward.

@@ -1,0 +1,140 @@
+MESSAGE TO DATA ENGINE DEV (SEND THIS)
+
+Subject: Pipeline Change — Switch to Manual Ingestion (Keep Scrapers Disabled, Not Removed)
+
+We’re making a temporary but necessary change to the data engine architecture.
+
+🚨 Current Issue (Context)
+
+Right now, fighter data being pushed is incomplete (missing fields, “unknown” values, empty stats). This is coming from unreliable scraping + AI fallback.
+
+From my understanding:
+
+Scraping from UFCStats is inconsistent / blocked
+AI (Claude) is returning incomplete objects {} and we are still inserting them
+No validation layer → bad data is reaching production
+✅ NEW DIRECTION (Effective Immediately)
+
+We are switching to a manual ingestion workflow for:
+
+ONLY:
+Fighter Profiles
+Fight History
+NOT changing:
+News scraping ✅ (keep running)
+Odds scraping ✅ (keep running)
+⚙️ REQUIREMENTS
+1. DO NOT DELETE CURRENT SCRAPERS
+Keep all scraping logic in place
+Just disable it from the pipeline flow
+We may reuse it later once stabilized
+2. BUILD RAW INGESTION ENDPOINT
+Endpoint:
+POST /ingest/raw
+Input:
+{
+  "type": "fighter_profile" | "fight_history",
+  "raw_text": "<full pasted page>"
+}
+3. DATA SOURCES (STRICT)
+
+Operator will manually copy from:
+
+UFCStats
+Tapology
+Sherdog
+
+No scraping required for this flow.
+
+4. CLAUDE PARSING (CRITICAL CHANGE)
+
+Claude should:
+
+Extract structured fields based on schema
+DO NOT GUESS values
+DO NOT FILL DEFAULTS like "Unknown"
+Missing data = empty field
+5. VALIDATION LAYER (MANDATORY — THIS IS WHY WE’RE FAILING)
+
+Before inserting into Supabase:
+
+Reject payload if:
+first_name OR last_name missing
+wins/losses missing (for fighter)
+ALL stats are empty
+malformed numbers (height, reach, etc.)
+
+👉 If validation fails:
+
+Return error response
+DO NOT INSERT
+6. PREVIEW STEP (OPERATOR CONTROL)
+
+Before saving, return parsed data:
+
+{
+  "status": "preview",
+  "data": { structured fighter or fight history }
+}
+
+Operator will:
+
+Review
+Edit if needed
+Then approve
+7. APPROVAL ENDPOINT
+POST /ingest/approve
+
+Only after approval:
+
+Insert into Supabase
+Trigger normal pipeline (images, push, etc.)
+8. SEPARATE FLOWS (IMPORTANT)
+
+Keep these completely separate:
+
+A. Fighter Profile Ingestion
+One fighter at a time
+Writes to fighters
+B. Fight History Ingestion
+One fighter’s full history
+Writes to fight_history
+
+👉 DO NOT COMBINE — too error-prone
+
+9. UFC LOGIC RULE (IMPORTANT)
+
+If fighter exists on UFCStats:
+→ Expect stats (SLpM, TD Avg, etc.)
+
+If NOT:
+→ Leave those fields empty
+
+👉 No guessing, no fake fills
+
+10. GOAL
+
+We are optimizing for:
+
+✅ Data accuracy over automation
+✅ Operator control
+✅ Clean database
+❌ NOT full automation (for now)
+11. DEBUGGING REQUIREMENT
+
+For every ingestion:
+
+If something fails or looks wrong:
+
+Log the issue
+Identify root cause (parsing / missing source / formatting)
+Suggest fix
+
+We are actively auditing and improving this process.
+
+🧠 FINAL NOTE
+
+Once we successfully complete ONE full event card with clean data, we will:
+
+Standardize this workflow
+Then revisit automation (scraping) later

@@ -1,0 +1,194 @@
+Clear system design (so you understand it)
+Exact message to send your dev (copy-paste ready)
+🧠 What You’re Building (Simplified)
+
+This is NOT just “news scraping”.
+
+👉 This is a Signal Engine
+
+Two types of signals:
+
+1. STRUCTURAL (High Confidence)
+New fights announced
+Event changes
+Fight cancellations
+2. INTELLIGENCE (Betting Edge)
+Injuries
+Bad weight cuts
+Camp changes
+“Looks sharp”, “best camp ever”
+Short notice replacements
+⚠️ Rule #1 (VERY IMPORTANT)
+
+👉 You are NOT a news outlet
+👉 You are a signal filter
+
+So:
+
+❌ No spam
+❌ No low-value posts
+✅ Only things that affect fights / betting
+🎯 What You Need (Core Features)
+✅ 1. LIMITED SOURCE LIST (CRITICAL)
+
+You were 100% right here.
+
+Do NOT scan the whole internet.
+
+Use ONLY trusted sources like:
+
+ESPN MMA
+MMA Fighting
+MMA Junkie
+Sherdog
+Bloody Elbow
+Tapology
+
+👉 That’s enough. No need for 100 sites.
+
+✅ 2. SIGNAL TYPES (categorize everything)
+
+Every article MUST be tagged:
+
+fight_announcement
+injury
+camp_change
+weight_issue
+performance_hype
+replacement_fight
+general_news (lowest priority)
+✅ 3. IMPORTANCE RATING (your key idea 🔥)
+
+Each signal gets:
+
+🔴 HIGH
+Injury before fight
+Fight cancellation
+Replacement fighter
+Major weight miss risk
+🟡 MEDIUM
+Camp change
+Training updates
+“Best camp ever”
+⚪ LOW
+Interviews
+Opinions
+Noise
+
+👉 You only PUSH:
+
+HIGH ✅
+MEDIUM (optional)
+LOW ❌ (ignore or store but don’t show)
+✅ 4. CONFIDENCE SCORE
+
+This solves your “word on the street” problem.
+
+HIGH → confirmed by major outlet
+MEDIUM → reported but not official
+LOW → rumor / weak signal
+✅ 5. FIGHTER LINKING
+
+Every signal should:
+
+attach to fighter_id (if possible)
+attach to event_id (if relevant)
+🧾 EXACT MESSAGE TO SEND DEV
+🧠 News / Intelligence Engine — Final Spec
+
+We are now building the News / Alert System, but this is NOT general news scraping.
+
+This is a signal-based system for betting insights.
+
+🔴 1. SOURCE LIMITATION (MANDATORY)
+
+We will ONLY use a fixed list of trusted sources:
+
+ESPN MMA
+MMA Fighting
+MMA Junkie
+Sherdog
+Bloody Elbow
+Tapology
+
+No broad web scraping.
+
+🔴 2. SIGNAL CLASSIFICATION
+
+Every article must be classified into one of:
+
+fight_announcement
+injury
+camp_change
+weight_issue
+performance_hype
+replacement_fight
+general_news
+🔴 3. IMPORTANCE RATING (REQUIRED)
+
+Each signal must have:
+
+importance_level:
+HIGH
+MEDIUM
+LOW
+Rules:
+HIGH → must be surfaced in UI
+MEDIUM → optional display
+LOW → do NOT push to main app
+🔴 4. CONFIDENCE SCORE
+
+Add:
+
+confidence_level:
+HIGH (confirmed)
+MEDIUM (reported)
+LOW (rumor)
+🔴 5. AI PROCESSING (Claude)
+
+Claude should:
+
+Summarize article
+Extract:
+fighter names
+event references
+Classify signal_type
+Assign importance_level
+Assign confidence_level
+🔴 6. STRICT FILTERING
+
+Do NOT store or push:
+
+Generic interviews
+Opinion-only content
+Clickbait headlines
+
+We only want actionable signals.
+
+🔴 7. OUTPUT STRUCTURE
+
+Each news item must include:
+
+{
+  "headline": "",
+  "summary": "",
+  "fighter_id": "",
+  "event_id": "",
+  "signal_type": "",
+  "importance_level": "",
+  "confidence_level": "",
+  "source_url": "",
+  "published_at": ""
+}
+🔴 8. UI REQUIREMENT
+
+Operator must be able to:
+
+View signals
+Filter by:
+importance
+signal_type
+Approve / reject before push
+🔴 9. SCHEDULER
+
+Run every:

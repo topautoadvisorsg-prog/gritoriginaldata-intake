@@ -1,0 +1,127 @@
+We’ve made progress — data is now reaching the main app, but the quality is not usable. A lot of fields are coming through as empty or “Unknown”.
+
+Based on reviewing the prompts and outputs, here’s my understanding of what’s happening — please confirm or correct:
+
+The current extraction is too rigid (limited sources + too many required fields)
+When one part fails (Tapology structure, UFCStats missing, or AI returning empty), the whole record degrades
+There’s no validation layer before inserting data, so incomplete profiles are getting through
+Suggested approach (please review + implement if it makes sense)
+1. Source Strategy (Keep it simple and realistic)
+
+We should standardize around ONLY these:
+
+Tapology → primary for identity, record, gym, breakdown
+UFCStats → ONLY if fighter has a page (career stats)
+Sherdog → fallback for missing fields
+
+No need for anything else.
+
+2. Fighter Classification (CRITICAL STEP)
+
+Before scraping, classify the fighter:
+
+If fighter has a UFCStats page → “Established UFC fighter”
+If NOT → “New UFC fighter”
+
+Then:
+
+Established → use Tapology + UFCStats
+New → use Tapology + Sherdog only (skip UFCStats entirely)
+
+This avoids empty stat fields and wasted calls.
+
+3. Field Priority System (fixes current failures)
+
+Tier 1 — REQUIRED (must exist or retry):
+
+first_name
+last_name
+wins
+losses
+weight_class
+
+If any of these are missing → retry using fallback source
+
+Tier 2 — STANDARD (fill if available, otherwise leave empty):
+
+height
+reach
+stance
+nationality
+gym
+fighting_out_of
+
+Do NOT force these — no “Unknown”
+
+Tier 3 — ENRICHMENT (optional):
+
+UFCStats metrics (SLpM, TD avg, etc.)
+AI bio / breakdown
+method win/loss breakdown
+
+If missing → skip, do NOT fail the record
+
+4. Remove Hard “Required” Constraints
+
+The Tapology win/loss breakdown table is not consistent.
+
+Recommendation:
+
+Treat it as OPTIONAL
+Extract when cleanly available
+Otherwise leave empty
+5. No Silent Failures (IMPORTANT)
+
+Right now it looks like failures are being swallowed.
+
+Please log per fighter:
+
+Raw scraped values (Tapology / Sherdog)
+UFCStats found or not
+AI output (valid JSON or empty)
+
+If AI returns {}:
+
+retry once
+if still empty → skip AI, keep scraped data
+6. Validation Before Insert (THIS IS KEY)
+
+Before inserting into DB:
+
+If missing:
+
+first_name
+last_name
+wins
+losses
+
+→ DO NOT INSERT
+
+Log as failed extraction instead.
+
+7. Re-run Test (Controlled)
+
+After adjustments:
+
+Pick 2 fighters:
+1 established UFC fighter
+1 new UFC fighter
+
+For each, show:
+
+Raw scrape
+Final structured output
+
+We validate those first before running the full card again.
+
+Goal
+
+We don’t need perfect data — we need reliable, consistent, non-broken profiles.
+
+Once one event card is clean, we scale.
+
+Let me know:
+
+Where you think the failure is happening (scraper vs AI vs mapping)
+What fixes you apply
+Any limitations from Tapology / UFCStats / Sherdog

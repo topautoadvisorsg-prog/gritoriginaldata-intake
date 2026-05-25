@@ -1,0 +1,130 @@
+Right now the system is:
+
+✔ Doing the scan correctly
+✔ Letting you add fighters
+❌ Losing context after each action
+❌ Not showing ingestion validation (field coverage)
+
+Those two gaps = wasted time + wasted API calls.
+
+🧠 Root Problems (clear)
+1. Scan results are NOT persisted
+After clicking “Add → Save & Approve”
+The entire event scan disappears
+You’re forced to re-run the scrape
+
+👉 This is a state management failure
+
+2. No ingestion feedback (CRM-style validation)
+You don’t see:
+How many fields were filled
+Which ones failed
+What matched vs didn’t
+
+👉 This is a visibility / QA failure
+
+⚡ Fix both with ONE upgrade
+
+You need:
+
+Session-based Event Workspace
+
+Not just a tool. A working session.
+
+📩 Send THIS to the developer
+CRITICAL UX FIX — PERSISTENCE + INGESTION FEEDBACK
+
+The current flow works, but it resets state and lacks ingestion visibility.
+This creates repeated API calls and slows down the workflow.
+
+We need two upgrades.
+
+1. Persist Event Scan (NO re-scraping)
+Problem:
+
+After adding a fighter, the event scan disappears and must be re-run.
+
+Required Fix:
+
+When event is scanned:
+
+Store results in frontend state OR temporary session storage
+
+Acceptable options:
+
+React state (preferred)
+localStorage (fallback)
+in-memory cache tied to session
+Behavior:
+
+After clicking “Add Fighter” → returning:
+
+DO NOT clear scan results
+DO NOT re-fetch event
+Maintain:
+event_name
+full fight card
+fighter statuses (update dynamically)
+Update logic:
+
+When a fighter is added:
+
+Immediately update status:
+"missing" → "exists"
+
+NO re-scan required.
+
+2. Ingestion Feedback (MANDATORY)
+Problem:
+
+No visibility into what fields were parsed or missing.
+
+Required UI after raw data submission:
+
+Show summary:
+
+Fighter Created: John Doe
+
+Fields:
+✔ Name
+✔ Record
+✔ Height
+✖ Reach (missing)
+✖ Stance (missing)
+
+Completion: 70%
+Backend requirement:
+
+Return structured validation:
+
+{
+  "fields_total": 10,
+  "fields_filled": 7,
+  "missing_fields": ["reach", "stance"],
+  "parsed_fields": ["name", "record", "height"]
+}
+3. Navigation Fix (IMPORTANT)
+
+Current:
+
+Add fighter → goes to raw data page → save → resets everything
+Required:
+
+After saving fighter:
+
+Return to SAME event screen
+Preserve scan results
+Update that fighter’s status in-place
+4. API Optimization
+DO NOT re-call scraper after each fighter add
+Only call once per event input
+5. Output Required
+
+Provide:
+
+How state is persisted
+How fighter status updates without re-scan
+Example ingestion feedback response
+Confirmation no repeated API calls occur
+
+Goal: One scan per event. Zero resets. Full visibility on ingestion

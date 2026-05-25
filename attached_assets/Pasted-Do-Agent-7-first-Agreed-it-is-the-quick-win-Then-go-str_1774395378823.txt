@@ -1,0 +1,229 @@
+Do Agent 7 first. Agreed it is the quick win. Then go straight into the admin dashboard. Here is exactly what I need from both.
+
+AGENT 7 — REAL PHOTO SCRAPE
+You already have the Sherdog URL from Agent 2. Use it.
+Step by step:
+
+Take the Sherdog URL stored on the fighter record from Agent 2
+Scrape the fighter profile page with BeautifulSoup4
+Find the fighter's main profile photo — it is in the fighter profile header on Sherdog
+Download the image file
+Resize and crop to two formats using PIL:
+
+Face profile: 400x400 square, head and shoulders centered
+Half body: 400x600, crop just above waistband, no shorts branding visible
+
+
+Upload both to Supabase Storage fighter-images bucket
+Store both URLs on the fighter record — imageUrl for face, bodyImageUrl for half body
+Set needs_image to false
+If Sherdog has no photo — set needs_image to true, skip, move on
+
+Remove all DALL-E and OpenAI code from Agent 7 entirely. Remove OPENAI_API_KEY from environment variables. It is no longer needed.
+Report back when Agent 7 is done. Then immediately move to the admin dashboard.
+
+ADMIN DASHBOARD — FULL PIPELINE REVIEW UI
+This is the most important operational piece in the entire platform. The owner reviews and approves everything that comes in from the data engine before it goes live. He needs to see every field, every record, every action.
+Build this as a dedicated section in the existing admin dashboard. Here is every tab and every element needed:
+
+TAB 1 — PENDING REVIEW
+Shows every record sitting in the pipeline waiting for admin approval. Default view when admin opens the pipeline section.
+Each record in the list shows:
+
+Record type icon — fighter, fight history, event, news, intelligence, odds
+Name or title of the record
+Source it came from — Sherdog, Tapology, UFCStats, BestFightOdds
+Timestamp when it arrived
+Status badge — pending, approved, rejected, applied
+Quick approve button
+Quick reject button
+Click to expand full preview
+
+When admin clicks a record it opens a full preview panel. The preview looks exactly like how it will appear in the main app when approved. Not raw JSON. Formatted and clean.
+
+FIGHTER PROFILE PREVIEW
+When admin clicks a pending fighter record show a full formatted fighter card:
+Left side:
+
+Fighter photo if available, placeholder silhouette if needs_image is true
+Name large and prominent
+Nickname below name
+Record — wins losses draws no contests
+Organization and weight class badges
+Ranking if applicable
+Champion indicator if applicable
+
+Right side — all stats in clean labeled rows:
+
+Date of birth
+Nationality
+Height in inches
+Reach in inches
+Stance
+Gym
+Team
+Head coach
+Fighting out of
+Status — active, retired, inactive
+Fighting style
+Twitter handle
+Instagram handle
+
+Performance metrics section:
+
+KO wins, submission wins, decision wins
+Losses by KO, losses by submission, losses by decision
+KO win percentage, submission win percentage, decision win percentage
+Strikes landed per minute
+Strike accuracy
+Strikes absorbed per minute
+Strike defense
+Takedown average
+Takedown accuracy
+Takedown defense
+Submission average
+
+AI brief section:
+
+Full text of the Claude generated brief
+Fighting style summary
+Recent trend
+Strengths
+Weaknesses
+Prediction insight
+
+Bottom of preview:
+
+Approve button — green
+Reject button — red
+Edit button — opens all fields as editable inputs so admin can fix anything before approving
+Source links — Sherdog URL, Tapology URL if available
+
+
+FIGHT HISTORY PREVIEW
+When admin clicks a pending fight history record show a clean sortable table:
+One row per bout with these columns:
+
+Date
+Event name
+Opponent name
+Result — Win Loss Draw NC with color coding, green for win, red for loss
+Method — KO TKO Submission Decision DQ
+Method detail — Rear Naked Choke, Punches, etc
+Round
+Time
+Title fight indicator
+Promotion
+
+Expandable row for detailed stats:
+
+Knockdowns
+Significant strikes landed and attempted
+Strike accuracy percentage
+Total strikes
+Takedowns landed and attempted
+Submission attempts
+Control time
+Head body leg strike breakdown
+
+Bottom of preview:
+
+Approve button
+Reject button
+Edit button
+
+
+NEWS AND INTELLIGENCE PREVIEW
+When admin clicks a pending news or intelligence item show:
+
+Layer badge — STANDARD in gray or INTELLIGENCE in red gold
+Title large
+Author — The Connect persona
+Published timestamp
+Full article body text
+Tags as colored pills
+Fighter references — which fighters are mentioned, links to their profiles
+Event reference if tied to a specific event
+Source URL link
+
+Bottom:
+
+Approve button
+Reject button
+Edit button — admin can edit title, content, tags, layer before approving
+Feature button — if this is strong enough for the intel feed ticker mark it as featured
+
+
+ODDS PREVIEW
+When admin clicks a pending odds record show:
+
+Event name
+Fight matchup — Fighter A vs Fighter B
+Fighter A moneyline
+Fighter B moneyline
+Over under if available
+Source — BestFightOdds or OddsShark
+Timestamp of scrape
+Previous odds if line movement exists — show the change
+
+Bottom:
+
+Approve button
+Reject button
+
+
+TAB 2 — ACTIVITY LOG
+Every action the data engine has ever taken. Searchable and filterable.
+Each log entry shows:
+
+Timestamp
+Agent that ran — Agent 1, Agent 2, Agent 3, etc
+Action taken — scraped, pushed, error, retry
+Fighter or event name if applicable
+Result — success, failed, skipped
+Error message if failed
+
+Filters:
+
+By agent
+By status — success, failed, skipped
+By date range
+Search by fighter or event name
+
+
+TAB 3 — APPROVED
+All records that have been approved and applied to the live database. Same preview capability as pending tab. Admin can view any approved record. Cannot edit after applied — view only.
+Shows count of total approved records by type — fighters, fight histories, events, news articles, odds records.
+
+TAB 4 — REJECTED
+All records that were rejected. Shows who rejected them and when. Admin can reverse a rejection and move a record back to pending if needed.
+
+TAB 5 — NEEDS ATTENTION
+Any record that has a flag on it:
+
+needs_image true — fighter has no photo
+Claude verification flagged something suspicious
+Potential duplicate detected — fuzzy name match found a possible existing record
+Push failed and needs retry
+Any error that requires admin decision
+
+This tab should have a badge count on it showing how many items need attention. Admin sees this number and knows something requires action.
+
+GLOBAL PIPELINE STATS — TOP OF PAGE
+Before the tabs show a quick stats bar:
+
+Total pending records waiting for review
+Records pushed today
+Records approved today
+Records rejected today
+Last data engine activity timestamp — when did the engine last run
+Next scheduled run — when will it run next
+
+
+TECHNICAL NOTES
+Poll the pipeline data every 30 seconds so the dashboard updates automatically without page refresh. Show a last updated timestamp so admin knows the data is current.
+All approve, reject, and edit actions must be confirmed with the existing admin authentication — do not allow unauthenticated actions on this dashboard.
+Edit mode should validate fields before saving — same Zod schemas used on the intake webhook apply here too.
+
+Build Agent 7 first. Report back when done. Then build the admin dashboard. Report back after each tab is complete so we can review as you go.
+Do not touch Replit or database connection files.

@@ -1,0 +1,739 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MMA Data Engine v4 — Replit Agent Brief</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap');
+
+  :root {
+    --bg: #0c0c0e;
+    --surface: #141418;
+    --border: #252530;
+    --accent: #e8192c;
+    --green: #10b981;
+    --gold: #f5a623;
+    --text: #e2e0dc;
+    --muted: #6b6a72;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-size: 15px;
+    line-height: 1.75;
+    padding: 48px 60px 100px;
+    max-width: 900px;
+    margin: 0 auto;
+  }
+
+  .eyebrow {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    color: var(--accent);
+    text-transform: uppercase;
+    margin-bottom: 10px;
+  }
+
+  h1 {
+    font-size: 32px;
+    font-weight: 600;
+    color: #fff;
+    margin-bottom: 8px;
+    line-height: 1.2;
+  }
+
+  .subtitle {
+    font-size: 14px;
+    color: var(--muted);
+    margin-bottom: 48px;
+    font-weight: 300;
+  }
+
+  .pipeline {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    margin-bottom: 48px;
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+
+  .pipe-step {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 10px 16px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    color: var(--text);
+    text-align: center;
+    line-height: 1.4;
+  }
+
+  .pipe-step span {
+    display: block;
+    color: var(--accent);
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    margin-bottom: 2px;
+  }
+
+  .pipe-arrow {
+    font-family: 'IBM Plex Mono', monospace;
+    color: var(--muted);
+    font-size: 16px;
+    padding: 0 4px;
+  }
+
+  .pipe-news {
+    border-color: var(--gold);
+  }
+  .pipe-news span { color: var(--gold); }
+
+  .copy-box {
+    background: #0a0a0c;
+    border: 1px solid var(--border);
+    border-top: 3px solid var(--accent);
+    border-radius: 0 0 8px 8px;
+    overflow: hidden;
+    margin-bottom: 32px;
+  }
+
+  .copy-topbar {
+    background: #111116;
+    padding: 12px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .copy-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.15em;
+    color: var(--accent);
+    text-transform: uppercase;
+  }
+
+  .copy-btn {
+    background: none;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    padding: 4px 14px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .copy-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .copy-btn.copied { border-color: var(--green); color: var(--green); }
+
+  .copy-body {
+    padding: 28px 28px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12.5px;
+    line-height: 1.9;
+    color: #c8c4bc;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+
+  .note {
+    background: var(--surface);
+    border-left: 3px solid var(--gold);
+    padding: 14px 18px;
+    font-size: 13.5px;
+    color: #a0a0b0;
+    border-radius: 0 6px 6px 0;
+    margin-top: 24px;
+  }
+  .note strong { color: #fff; }
+</style>
+</head>
+<body>
+
+<div class="eyebrow">Replit Agent Brief — v4 Final</div>
+<h1>MMA Data Ingestion Pipeline</h1>
+<div class="subtitle">Four agents. One pipeline. Collect once, send it, done.</div>
+
+<div class="pipeline">
+  <div class="pipe-step"><span>AGENT 1</span>Event</div>
+  <div class="pipe-arrow">→</div>
+  <div class="pipe-step"><span>AGENT 2</span>Profile</div>
+  <div class="pipe-arrow">→</div>
+  <div class="pipe-step"><span>AGENT 3</span>History</div>
+  <div class="pipe-arrow">→</div>
+  <div class="pipe-step"><span>OUTPUT</span>API Ready</div>
+  <div class="pipe-arrow" style="margin-left:16px; color: #f5a623">◆</div>
+  <div class="pipe-step pipe-news" style="margin-left:4px"><span>AGENT 4</span>News (independent)</div>
+</div>
+
+<div class="copy-box">
+  <div class="copy-topbar">
+    <div class="copy-label">▸ Replit Agent Brief — paste and run</div>
+    <button class="copy-btn" onclick="copyIt(this)">copy</button>
+  </div>
+  <div class="copy-body" id="handoff-text">
+PROJECT: MMA Data Ingestion Pipeline
+PLATFORM: Replit (standalone project)
+PURPOSE: Collect MMA fighter data and news. Expose it via REST API.
+         What the consuming app does with the data is not this app's concern.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+THE ONE RULE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Every fighter goes through the pipeline ONCE. Never again.
+
+Agent 1 checks the DB before anything runs.
+If the fighter is already there — the pipeline stops. Nothing happens.
+If the fighter is new — the pipeline runs: Agent 2 then Agent 3, back to back.
+After that the record is done. The main system handles all future updates.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+TECH STACK
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Language:      Python 3.11+
+Framework:     FastAPI
+Orchestration: CrewAI (4 agents — see below)
+Database:      Supabase (Postgres)
+Scraping:      BeautifulSoup4 (primary) + Firecrawl (fallback only)
+LLM:           Claude claude-sonnet-4-20250514 via Anthropic API
+News search:   Brave Search API
+Scheduling:    APScheduler
+Env vars:      SUPABASE_URL, SUPABASE_SERVICE_KEY, FIRECRAWL_API_KEY,
+               ANTHROPIC_API_KEY, BRAVE_API_KEY
+
+SCRAPING STRATEGY — IMPORTANT:
+  Use BeautifulSoup4 as the default scraper for all sources.
+  Tapology and Sherdog are not JavaScript-heavy — BS4 handles them fine.
+  Only fall back to Firecrawl if BS4 fails on a specific page.
+  This keeps scraping costs minimal.
+
+JOB QUEUE — REQUIRED:
+  Implement a pipeline_jobs table in Supabase to track every fighter
+  moving through the pipeline. This costs nothing and makes debugging easy.
+
+  Table: pipeline_jobs
+    id            uuid PRIMARY KEY
+    fighter_name  text
+    fighter_id    uuid REFERENCES fighters(id)
+    status        text  -- queued / profiling / history / complete / failed
+    error_log     text
+    created_at    timestamp DEFAULT now()
+    updated_at    timestamp DEFAULT now()
+
+  Agent 1 writes a row when it queues a new fighter.
+  Agent 2 updates status to "profiling" when it starts.
+  Agent 3 updates status to "history" when it starts.
+  Agent 3 updates status to "complete" when done.
+  Any agent updates status to "failed" + logs the error if something breaks.
+  This gives full visibility into what's processing, done, or broken.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+THE CREW — 4 AGENTS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+AGENT 1 — EVENT AGENT
+──────────────────────
+Trigger: Team inputs an event name via POST /events/scan
+         OR scheduled daily at 8am UTC via APScheduler
+
+Job:
+  1. Take the event name
+  2. Search Brave + Firecrawl to get the full fight card
+  3. Extract every fighter name on the card
+  4. For each fighter — check DB:
+       Already exists? Skip. Do nothing.
+       Not found? Add to pipeline queue.
+  5. Create or update the event record in Supabase
+  6. Create fight_card entries (fighter A vs fighter B per bout)
+  7. Hand the queue of new fighters to Agent 2
+
+Output: list of new fighter names to process + event/fight_card records written
+
+
+AGENT 2 — PROFILE AGENT
+────────────────────────
+Trigger: Called by Agent 1 for each new fighter in the queue. Back to back.
+
+Job — scrape profile data ONLY. Nothing else.
+  Sources in order: Tapology → Sherdog → UFC Stats
+
+  Fields to collect:
+    Name, nickname, weight class
+    Record: wins / losses / draws
+    Record breakdown: KO wins / submission wins / decision wins
+    Height, reach, date of birth, nationality
+    Team / gym
+    Profile image URL
+
+  Verification:
+    Scrape Tapology first, then Sherdog.
+    Use Claude to compare every field between the two sources.
+    Mismatch < 10%:  set verified = true
+    Mismatch >= 10%: set verified = false, log conflicts in review_notes
+
+  Also collect during profile scrape:
+    Twitter/X handle    — search "[fighter name] MMA twitter" if not
+                          directly on source page
+    Instagram handle    — same approach
+  Store both on the fighter record as twitter_handle and instagram_handle.
+  These are used directly by Agent 5 — no searching needed later.
+
+  Write fighter record to Supabase fighters table.
+  Then immediately hand the fighter_id to Agent 3.
+
+Output: fighter record written to DB → fighter_id passed to Agent 3
+
+
+AGENT 3 — HISTORY AGENT
+────────────────────────
+Trigger: Called by Agent 2 immediately after profile is written. Back to back.
+
+Job — scrape fight history ONLY for the fighter_id received.
+  Sources in order: Tapology → Sherdog → UFC Stats
+
+  For every fight in their career collect:
+    Opponent name
+    Result (win / loss / draw / no contest)
+    Method (KO/TKO / SUB / DEC / UDEC / SDEC / MDEC)
+    Round
+    Time (e.g. "4:32")
+    Event name
+    Fight date
+
+  Write each bout as a row in fight_history table linked to fighter_id.
+
+  Then generate AI Brief using Claude and write to ai_brief field on fighter:
+    fighting_style      (striker / grappler / wrestler / hybrid)
+    recent_trend        (pattern across last 5 fights)
+    strengths           (array of strings)
+    weaknesses          (array of strings)
+    prediction_insight  (tendencies and patterns — not a betting pick)
+  Set ai_generated = true on the fighter record.
+
+  Fighter is now complete. Pipeline ends here for this fighter.
+  This fighter will never be processed by Agents 1-3 again.
+
+Output: fight_history rows written + ai_brief written → fighter complete
+
+
+AGENT 4 — INTELLIGENCE & REPORTING AGENT  (runs independently)
+────────────────────────────────────────────────────────────────
+Trigger: Every 45 minutes via APScheduler.
+         Breaking signal types (injury, cancellation) run every 15 minutes.
+
+PURPOSE:
+  Two layers. Both matter.
+
+  LAYER 1 — STANDARD REPORTING
+  The foundation. Keeps the app current and credible.
+  Covers: fight announcements, cancellations, replacement fighters,
+  weigh-in issues, event updates, promotional news.
+  Written fast, written clean, delivered before the big outlets
+  finish formatting theirs. Speed is the advantage here.
+
+  LAYER 2 — INTELLIGENCE SIGNALS
+  The real edge. Things that actually affect fight outcomes
+  that most outlets don't connect or don't care about.
+  This is what separates the app from everything else out there.
+
+  Signal list — Agent 4 hunts for these specifically:
+    Camp changes (new gym, new coach, late notice)
+    Injury reports (official and unofficial — social, forums, podcasts)
+    Fighter behavior signals (appearances, social activity, interviews)
+    Weigh-in history and weight struggle patterns
+    Sparring reports (coaches, training partners posting anything)
+    Deleted social posts (screenshot sources, forum captures)
+    Motivation signals (contract disputes, financial pressure, retirement talk)
+    Travel and location signals (is he where he should be?)
+    Replacement fighter flags (short notice = undercooked)
+    Promotional red flags (fighter unhappy, political issues with promotion)
+
+  When a signal is detected it gets flagged with signal_type tag
+  so the app can surface it separately from standard news.
+
+WRITER PERSONA:
+  Name: The Connect
+  Voice: Hybrid insider and hype. Talks like someone who has been
+  in and around the sport for years. Knows the fighters, knows the
+  camps, knows the politics. Not corporate. Not a press release
+  rewriter. Direct, confident, occasionally punchy.
+  Speaks to fans who watch every card AND to people who have
+  money on the line. Both audiences get what they need.
+
+  Rules he always follows:
+    Never over-explains — fans already know the sport
+    Leads with the most important information first
+    Fight announcements get energy — make it feel like an event
+    Injury and signal reports are delivered straight — no drama,
+    just facts and implications
+    Never speculates beyond what the source supports
+    Short sentences when it matters. Punch it.
+    SEO basics baked in — fighter names, event name, promotion
+    in the first 50 words. That is enough. Do not stuff keywords.
+    Content is written to be shared, not to rank. Quality and
+    speed create the viral loop — SEO just gets it indexed.
+
+SOURCES:
+  Brave Search API — queries every cycle:
+    Layer 1: "MMA news today" / "UFC announcement" /
+             "fight cancelled" / "replacement fighter" /
+             "fight card update"
+    Layer 2: "MMA injury" / "fighter camp" / "sparring" /
+             "fighter spotted" / "[fighter name] training" /
+             "UFC roster" / MMA subreddits / MMA Twitter/X signals /
+             fighter and coach social accounts via Firecrawl
+
+  Firecrawl — fetch full content where Brave snippets are not enough.
+  Priority sources: MMA Fighting, ESPN MMA, Sherdog news,
+  BJPenn.com, MMA Junkie, fighter/coach social profiles.
+
+OUTPUT PER ITEM:
+  headline          punchy, written in persona voice
+  summary           3-5 sentences max, persona voice throughout
+  layer             "standard" or "intelligence"
+  signal_type       (intelligence layer only — see signal list above)
+  topic_tags        see tag system
+  entity_tags       fighter IDs + event IDs
+  content_tags      news / fantasy-relevant / betting-relevant
+  seo_slug          auto-generated URL-friendly slug
+  source_url        original source
+
+TAG SYSTEM:
+
+  topic_tags:
+    injury / fight-announcement / fight-cancellation /
+    replacement-fighter / weigh-in / fight-result /
+    training-camp / camp-change / behavior-signal /
+    contract / general-mma
+
+  entity_tags:
+    fighter:{fighter_id}
+    event:{event_id}
+    promotion:{name}
+
+  content_tags:
+    news / fantasy-relevant / betting-relevant
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+MANUAL FIGHT RESULT ENTRY
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+After a fight the team logs the result manually. 5 fields. No automation.
+
+POST /fights/result
+  fight_card_id    uuid
+  winner_id        uuid
+  method           KO/TKO / SUB / DEC / UDEC / SDEC / MDEC
+  round            int
+  time             text
+  referee          text
+
+Appends to fight_history for both fighters.
+Updates win / loss / draw counts on both fighter records.
+That is the only write ever made to an existing fighter record.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+DATABASE SCHEMA (Supabase)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Table: fighters
+  id                uuid PRIMARY KEY
+  name              text NOT NULL
+  nickname          text
+  weight_class      text
+  record_wins       int DEFAULT 0
+  record_losses     int DEFAULT 0
+  record_draws      int DEFAULT 0
+  ko_wins           int DEFAULT 0
+  sub_wins          int DEFAULT 0
+  dec_wins          int DEFAULT 0
+  height_cm         numeric
+  reach_cm          numeric
+  dob               date
+  nationality       text
+  team              text
+  image_url         text
+  verified          boolean DEFAULT false
+  review_notes      jsonb
+  ai_brief          jsonb
+  ai_generated      boolean DEFAULT false
+  twitter_handle    text
+  instagram_handle  text
+  created_at        timestamp DEFAULT now()
+
+Table: fight_history
+  id                uuid PRIMARY KEY
+  fighter_id        uuid REFERENCES fighters(id)
+  opponent_name     text
+  opponent_id       uuid REFERENCES fighters(id)
+  result            text
+  method            text
+  round             int
+  time              text
+  referee           text
+  event_name        text
+  fight_date        date
+  created_at        timestamp DEFAULT now()
+
+Table: events
+  id                uuid PRIMARY KEY
+  event_name        text
+  promotion         text
+  event_date        date
+  venue             text
+  created_at        timestamp DEFAULT now()
+
+Table: fight_cards
+  id                uuid PRIMARY KEY
+  event_id          uuid REFERENCES events(id)
+  fighter_a_id      uuid REFERENCES fighters(id)
+  fighter_b_id      uuid REFERENCES fighters(id)
+  weight_class      text
+  card_position     text
+  result_logged     boolean DEFAULT false
+  created_at        timestamp DEFAULT now()
+
+Table: news_items
+  id                uuid PRIMARY KEY
+  headline          text
+  summary           text
+  source_url        text
+  layer             text      -- standard / intelligence
+  signal_type       text      -- injury / camp-change / behavior / weight / silence / deleted-post
+  topic_tags        text[]
+  entity_tags       text[]
+  content_tags      text[]
+  seo_slug          text
+  published_at      timestamp
+  created_at        timestamp DEFAULT now()
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+API ENDPOINTS (FastAPI)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+GET  /fighters                   all fighters
+GET  /fighters/{id}              profile + fight history + ai_brief
+GET  /fighters/search?q=         search by name
+
+GET  /news                       all news items, newest first (paginated)
+GET  /news/fighter/{id}          news tagged to a specific fighter
+
+GET  /events                     all events
+GET  /events/{id}/card           fight card for an event
+
+POST /events/scan                trigger Agent 1 for a named event
+POST /fights/result              manually log a fight result
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+SCHEDULING — FULLY CONFIGURABLE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+All cycle times are stored as settings in a config table in Supabase.
+They are editable from the dashboard without touching code.
+Default values are listed below — change them anytime.
+
+  Agent 4 news sweep        →  default every 3 hours (configurable)
+  Agent 4 breaking signals  →  default every 45 min (configurable)
+  Agent 1 event scan        →  default daily 8am UTC (configurable)
+  Agent 5 social monitor    →  default every 30 min (configurable)
+
+On-demand (always available):
+  POST /events/scan         →  manually trigger Agent 1
+  POST /fights/result       →  manually log a fight result
+  POST /agent4/run          →  manually trigger a news sweep
+  POST /agent5/run          →  manually trigger a social scan
+
+Table: config
+  key        text PRIMARY KEY   (e.g. "agent4_news_interval_minutes")
+  value      text               (e.g. "180")
+  updated_at timestamp DEFAULT now()
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+AGENT 5 — SOCIAL MONITOR  (scoped, build after core is stable)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Trigger: Configurable schedule. Default every 30 minutes.
+
+PURPOSE:
+  Monitor fighter Twitter/X and Instagram for early intelligence signals.
+  Handles are already stored on every fighter record from Agent 2.
+  Agent 5 reads directly from the DB — no account searching needed.
+  Surgical, fast, no guesswork.
+
+PLATFORMS:
+  Twitter/X and Instagram only.
+
+TWO MODES — assigned automatically based on fight schedule:
+
+  MODE 1 — DEEP SCAN
+  Fighter has a bout on a card in the next 30 days.
+  Full scan every cycle. Every post, every story, every signal.
+  This is the high-value window — the closer to fight night the better.
+
+  Signals hunted:
+    Weight and cut signals (food posts, check-ins, body content)
+    Injury hints (boot, wrap, limp, hospital, cancelled appearance)
+    Camp signals (new faces tagged, gym changes, coach posts)
+    Mood and motivation (frustration, confidence, distraction)
+    Unusual silence (account goes dark close to fight — flag it)
+    Deleted posts (captured from forum screenshots where possible)
+
+  MODE 2 — LIGHT WATCH
+  Fighter is active in the DB but no upcoming bout in next 30 days.
+  Lighter pass, less frequent. Only flags clearly significant activity.
+  Keeps the radar warm without wasting cycles.
+
+HOW MODES ARE ASSIGNED:
+  Agent 5 queries fight_cards for bouts in next 30 days.
+  Any fighter_id on that list → MODE 1 deep scan.
+  All other active fighters → MODE 2 light watch.
+  Fully automatic. No manual management needed.
+
+OUTPUT:
+  Written to news_items table — same structure as Agent 4.
+  layer = "intelligence"
+  signal_type = injury / weight / camp-change / behavior / silence / deleted-post
+  entity_tags = fighter:{fighter_id}
+  source_url = platform handle
+
+NOTE: Build Agent 5 after core pipeline is stable and tested.
+      fighters table already has twitter_handle and instagram_handle
+      from Agent 2 collection — Agent 5 is ready to plug in.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+BUILD ORDER
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+1.  Supabase schema — all tables:
+      fighters, fight_history, events, fight_cards, news_items,
+      pipeline_jobs, config, monitored_accounts (ready for Agent 5)
+2.  Agent 1 — Event Agent + DB check logic + job queue writes
+3.  Agent 2 — Profile Agent + verification + social handle collection
+      (BS4 primary, Firecrawl fallback)
+4.  Agent 3 — History Agent + AI Brief
+5.  Agent 1→2→3 pipeline handoff (CrewAI crew)
+6.  Agent 4 — Intelligence & Reporting Agent (independent)
+7.  Manual fight result endpoint
+8.  APScheduler + configurable scheduling via config table
+9.  All FastAPI endpoints
+10. React dashboard — 5 screens
+11. End-to-end test: scan 1 real upcoming UFC event,
+    confirm fighters flow through all 3 pipeline agents,
+    confirm social handles collected on fighter record,
+    confirm pipeline_jobs reflects correct status at each step,
+    confirm Agent 4 produces tagged news items correctly
+12. Agent 5 — Social Monitor (after everything above is stable)
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+DASHBOARD UI
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Stack: React + Tailwind CSS
+Theme: Dark. Sports analytics aesthetic. Clean and sharp.
+       Think scoreboard meets command center — not a game,
+       but feels alive. Stats pop. Cards feel premium.
+       Fast, responsive, no clutter.
+
+SCREEN 1 — MAIN DASHBOARD
+  The control room. Everything at a glance.
+  - Input field at the top: "Enter event name" + Scan button.
+    This triggers Agent 1. That is the primary action on this screen.
+  - Live pipeline feed below the input:
+    Each fighter moving through the pipeline shown as a card.
+    Status updates in real time:
+      QUEUED → PROFILING → HISTORY → COMPLETE (or FAILED in red)
+    Pulls from pipeline_jobs table. Auto-refreshes every 10 seconds.
+  - Stats bar across the top:
+    Total fighters in DB / Verified / Unverified / News items today
+  - Recent news feed on the side:
+    Latest 5 news items with tags shown as colored pills
+
+SCREEN 2 — FIGHTERS
+  Searchable grid of fighter cards.
+  Each card: fighter image, name, weight class, record (W-L-D),
+  verified badge (green) or unverified flag (yellow).
+  Click a card → Fighter Detail:
+    Full profile, fight history table, AI brief,
+    and a Log Fight Result button.
+
+SCREEN 3 — EVENTS
+  List of all events. Each row: event name, promotion, date, venue,
+  number of bouts. Click an event → full fight card with all matchups.
+
+SCREEN 4 — NEWS
+  Feed of all news items, newest first.
+  Headline, summary, tags as colored pills, linked fighters and events.
+  Filterable by tag.
+
+SCREEN 5 — PIPELINE MONITOR
+  Full log of pipeline_jobs. Every fighter ever processed.
+  Status, timestamps, error logs. Failed jobs have a Retry button.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+UI DESIGN RULES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  Dark background — near black (#0c0c0e)
+  High contrast white for names and key stats
+  Red accent (#e8192c) for primary actions and highlights
+  Green for verified / complete states
+  Gold / yellow for unverified and warnings
+  Red for errors and failed pipeline jobs
+  Fighter images are the visual anchor of every card
+  Tags always rendered as small colored pill badges
+  Stat numbers large and bold — they should pop off the screen
+  Subtle animations on pipeline status changes
+  No gradients, no gimmicks — sharp, fast, clean
+  Single team access — no auth needed for now
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+BUILD ORDER
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+1.  Supabase schema — all 5 tables + pipeline_jobs + config + monitored_accounts
+2.  Agent 1 — Event Agent + DB check logic + job queue writes
+3.  Agent 2 — Profile Agent + verification (BS4 primary, Firecrawl fallback)
+4.  Agent 3 — History Agent + AI Brief
+5.  Agent 1→2→3 pipeline handoff (CrewAI crew)
+6.  Agent 4 — News Agent (independent)
+7.  Manual fight result endpoint
+8.  APScheduler setup
+9.  All FastAPI endpoints
+10. React dashboard — 5 screens
+11. End-to-end test: scan 1 real upcoming UFC event,
+    confirm fighters flow through all 3 pipeline agents,
+    confirm pipeline_jobs reflects correct status at each step,
+    confirm dashboard displays everything correctly
+  </div>
+</div>
+
+<div class="note">
+  <strong>Before you run:</strong> Set all 5 env vars in Replit Secrets first —
+  SUPABASE_URL, SUPABASE_SERVICE_KEY, FIRECRAWL_API_KEY, ANTHROPIC_API_KEY, BRAVE_API_KEY.
+  Follow the build order top to bottom. Do not skip the end-to-end test in step 10.
+</div>
+
+<script>
+function copyIt(btn) {
+  const el = document.getElementById('handoff-text');
+  navigator.clipboard.writeText(el.innerText).then(() => {
+    btn.textContent = 'copied ✓';
+    btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = 'copy'; btn.classList.remove('copied'); }, 3000);
+  });
+}
+</script>
+</body>
+</html>

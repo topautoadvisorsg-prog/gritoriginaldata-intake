@@ -1,0 +1,65 @@
+LANDING PAGE — POLISH LIST
+Good work getting it to a 7. Now we push it to a 10. Go through every item below in order.
+
+1. FAVICON
+The favicon is showing a Lovable icon. Replace it with the GRIT logo. The owner has an image file for the logo. For the favicon you need a square version ideally 512x512 PNG and also 32x32 and 16x16 versions. If the logo file is not square or not the right size we will handle that separately. For now tell me what favicon formats you currently support so we know exactly what file to give you.
+For the navbar logo — can it be an image file or does it need to be SVG. Tell me what works best on your end.
+
+2. NAV HEADER
+The nav tabs — Features, How It Works, Pricing, Language selector — make the text slightly bigger. Not dramatic. Just enough that it does not feel small. Bump the font size up one step and adjust spacing accordingly.
+
+3. HERO — FLOATING STAT BADGES
+Remove the floating badges that say things like Taperia minus 340 accuracy. They are bulky and not adding value. Clean the hero up. Keep the video, keep the headline, keep the pill badge, keep the CTAs. Remove the floating corner stat elements.
+
+4. INTEL FEED
+The intel feed ticker is good. Keep it. Make the text bigger — right now it is too small to read comfortably. Increase font size and make the ticker strip slightly taller. It should be readable at a glance without squinting.
+
+5. FIGHTER IMAGES
+There are still no fighter images anywhere on the page. This needs to be fixed. Add real fighter photos or high quality cutouts in these specific places:
+— AI Arena section — large dramatic fighter image or silhouette behind or beside the AI cards. Dark treatment, slightly offset, creates depth.
+— Fighter Intelligence section — replace the initials mock with a real fighter photo as the centerpiece. Stats overlaid on top or beside it.
+— Final CTA section — replace the two abstract dummy background images with two real fighter photos. Think promo poster style. Two fighters facing each other or dramatic individual shots. Dark overlay so the text reads clean on top.
+Use publicly available UFC or MMA press photos for now. We will replace with licensed images before full launch.
+
+6. GAP BETWEEN SECTIONS
+Between the Analyze with AI section and The Sharpest Minds Rise section there is too much gap. Reduce the spacing between those two sections. You can leave a small gap but right now it takes several scrolls to get through it. Tighten it up.
+
+7. HOW IT WORKS SECTION
+The four steps are just numbers and text right now — 01, 02, 03, 04. Each step needs a small visual element to make it feel alive:
+01 Create Your Profile — add a small fighter profile card visual
+02 Make Your Picks — add a small pick selection block visual
+03 Track Performance — add a small upward trending chart or stats visual
+04 Climb the Rankings — add a small badge or leaderboard position visual
+These do not need to be complex. Simple clean icons or small UI mockup fragments. Just enough that each step has something to look at besides numbers and text.
+
+8. BADGES IN LEADERBOARD SECTION
+The leaderboard section has no badge visuals. The badges are a core part of the product identity. We need to create them. Here is what we need:
+Four badges:
+— Ninja
+— Samurai
+— Master
+— GOAT
+For the format — SVG is the best option here. SVGs are sharp at any size, load fast, and can be animated later if needed. Do not use raster images if you can avoid it.
+For the design direction — each badge should feel like a real achievement emblem. Think military rank patches meets esports badge. Dark background, colored border, icon inside, name below. Each one escalates in visual weight and prestige. GOAT gets gold treatment.
+If you want to design them yourself go for it. If you want direction on what each one should look like tell me and I will give you specifics. Either way we need them built and integrated into the leaderboard rows and the progression section.
+
+9. PRICING SECTION
+Add the free plan back next to the Challenger plan. Two cards side by side. Free plan on the left, Challenger on the right.
+Free plan:
+Name: CONTENDER
+Price: $0 / Forever
+Features:
+— Fighter profiles and records
+— Make picks on all events
+— Global leaderboard access
+— Stars and badge progression
+— Community chat
+CTA button: START FREE
+Challenger plan stays exactly as it is.
+
+10. FINAL CTA BACKGROUND
+Remove the two abstract dummy background images. Replace with two real fighter photos in a promo style layout. Think two fighters, dramatic lighting, dark overlay. The text THE LEAGUE IS LIVE. YOUR RANK IS WAITING. should sit cleanly on top. This is the last thing the user sees before they sign up — it needs to hit hard.
+
+Report back with screenshots or a live link when done. Tell me honestly what you could not do and why.
+
+Send that. Bring back his response.

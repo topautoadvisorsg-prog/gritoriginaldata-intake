@@ -1,0 +1,189 @@
+MASTER ALIGNMENT PROMPT (SEND TO BOTH DEVS)
+
+Objective:
+Re-align the entire system (Data Engine + Main App) to a single source of truth, update the README, and report current status with zero assumptions.
+
+🔍 1️⃣ CURRENT STATE VERIFICATION (MANDATORY)
+
+Before changing anything:
+
+Review the entire codebase
+Compare it against the current README
+Identify mismatches
+Output required:
+{
+  "what_matches_readme": [],
+  "what_is_outdated": [],
+  "what_is_missing": [],
+  "what_is_broken": []
+}
+
+👉 No guessing. Only confirmed facts from code.
+
+📘 2️⃣ README MUST BE UPDATED (SOURCE OF TRUTH)
+
+The README must reflect:
+
+System Overview
+Data Engine (scraping + pipeline)
+Main App (GRIT receiver + UI)
+Pipeline Flow
+Data Engine → Webhook → Main App → Database → UI
+Current Status (REAL, not assumed)
+What is working
+What is partially working
+What is not built
+⚙️ 3️⃣ DATA ENGINE — REQUIRED CHECKS
+A. Pipeline Integrity
+
+Confirm:
+
+Job lifecycle exists:
+
+queued → processing → complete / failed
+No duplicate processing of same fighter
+Basic retry exists (or confirm missing)
+B. Source SOP Enforcement
+
+Must confirm:
+
+UFC → Tapology → Sherdog priority is implemented
+Missing data → "UNKNOWN" (not guessed)
+C. Deduplication (CRITICAL)
+
+Confirm:
+
+Does system prevent duplicate fighters?
+
+If NOT:
+
+👉 Propose minimum viable fix:
+
+name normalization
+secondary match (record OR weight class)
+D. AI Handling
+
+Confirm:
+
+JSON output enforced
+Validation before DB insert
+Behavior when AI fails
+E. Image System
+
+Confirm:
+
+Only 2 images per fighter:
+Headshot: 512×512
+Half-body: 512×1024
+Source preference:
+real image first
+generate only if missing
+F. 🔥 NEW REQUIREMENT — PROFILE UI
+
+Confirm:
+
+Does a fighter profile UI exist?
+
+If NOT:
+
+👉 Must be added:
+
+Fighter Profile Panel:
+All fields visible
+Missing fields highlighted
+Sources per field shown
+Image previews
+Confidence indicator
+Missing fields report
+🧩 4️⃣ MAIN APP — REQUIRED CHECKS
+A. Webhook
+
+Confirm existence of:
+
+POST /api/webhooks/data-engine/webhook
+
+If missing → mark as BLOCKER
+
+B. Auto-Apply
+
+Confirm:
+
+DATA_ENGINE_AUTO_APPLY exists
+If true → auto insert/update
+C. Event Fights
+
+Confirm:
+
+eventFights[] gets inserted into DB
+D. Security
+
+Confirm:
+
+All write routes protected (requireAdmin)
+E. Scoring System
+
+Confirm:
+
+Only ONE scoring path exists
+No duplicate scoring functions
+🧾 5️⃣ IMAGE PIPELINE STATUS (FROM CURRENT WORK)
+
+Explicitly report:
+
+{
+  "image_pipeline_status": "working | partial | not working",
+  "image_source": "UFC | generated | mixed",
+  "formats_correct": true/false,
+  "issues": []
+}
+🚨 6️⃣ BLOCKERS (CRITICAL SECTION)
+
+List ONLY real blockers:
+
+{
+  "blockers": [
+    "missing webhook",
+    "duplicate fighters possible",
+    "image pipeline broken"
+  ]
+}
+📊 7️⃣ FINAL STATUS SUMMARY
+{
+  "data_engine_status": "ready | partial | unstable",
+  "main_app_status": "ready | partial | missing pieces",
+  "integration_status": "connected | not connected",
+  "ready_for_live_pipeline": true/false
+}
+🎯 WHAT THIS DOES (IMPORTANT)
+
+This forces:
+
+README = truth (not outdated notes)
+Devs = aligned
+You = full visibility
+No more guessing
+No more “I think it works”
+🧠 Where You Actually Are (Reality)
+
+Based on everything:
+
+✅ You have:
+Data pipeline mostly working
+Schema solid
+Structure thought out
+❌ You are missing:
+Verified integration (webhook)
+Image pipeline finalized
+UI visibility layer
+Dedup protection
+🏁 Next Step After This
+
+Once they return this audit:
+
+👉 You’ll know EXACTLY:
+
+what’s real
+what’s broken
+what to fix first
+
+No more chaos.

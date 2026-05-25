@@ -1,0 +1,166 @@
+MESSAGE TO DEV (SEND THIS)
+
+Subject: Fight History Parsing Rules — Event Name Matching + Multi-Fight Parsing + Multi-Format Support
+
+We need to update the fight history ingestion logic to reflect how the actual data appears on sources.
+
+🚨 ISSUE 1 — UFC STATS HAS NO DATE
+
+On UFCStats fight history pages:
+
+There is NO event date shown in the table
+Only:
+Event name (e.g., “UFC 287: Pereira vs Adesanya 2”)
+Opponent
+Result
+Method
+Round / Time
+✅ REQUIRED FIX
+Use event_name as the primary identifier
+
+Then:
+
+👉 System must resolve date using:
+
+Option A (Preferred):
+Look up event in events table by:
+event_name
+Option B (Fallback):
+If not found → leave event_date EMPTY
+DO NOT guess
+🚨 ISSUE 2 — MULTIPLE FIGHTS IN ONE PASTE
+
+Operator will paste multiple fights at once (full page).
+
+✅ REQUIRED BEHAVIOR
+
+System must:
+
+1. Parse ALL fights from raw text
+2. Automatically split into individual fight records
+🔹 ORDER RULE
+
+Regardless of paste order:
+
+👉 System must ALWAYS sort:
+
+ORDER BY event_date ASC
+
+If no date:
+→ fallback to detected order (top-to-bottom)
+
+🚨 ISSUE 3 — DIFFERENT DATA FORMATS
+
+There are MULTIPLE fight history formats, not just one.
+
+✅ SUPPORTED FORMATS (MANDATORY)
+🟢 FORMAT 1 — Full UFC Stats (Detailed Fighters)
+
+From UFCStats:
+
+Includes:
+
+Opponent
+Event name
+Method
+Round
+Time
+detailed stats (sig strikes, TDs, control time)
+
+👉 This is the rich format
+
+🟡 FORMAT 2 — Basic UFC Stats
+
+Still from UFCStats, but:
+
+Missing detailed stats
+Only basic fight info
+
+👉 System must still parse core fields
+
+🔵 FORMAT 3 — Tapology
+
+From Tapology:
+
+Includes:
+
+Event name
+Date ✅
+Result
+Method
+Round
+
+👉 This is the most complete for dates
+
+🧠 REQUIRED LOGIC
+FIELD PRIORITY STRATEGY
+
+When merging:
+
+Use Tapology for:
+event_date ✅
+Use UFCStats for:
+detailed stats ✅
+MERGE EXAMPLE
+{
+  "event_name": "UFC 287",
+  "event_date": "2023-04-08",   // from Tapology
+  "sig_strikes": 123            // from UFCStats
+}
+🚨 ISSUE 4 — DEDUPLICATION
+
+When multiple sources are pasted:
+
+👉 Same fight may appear twice
+
+✅ REQUIRED DEDUPE KEY
+(event_name + opponent_name + result)
+
+If match:
+→ merge, don’t duplicate
+
+🚨 ISSUE 5 — OPERATOR FLEXIBILITY
+
+Operator may:
+
+Paste UFCStats first
+Then Tapology
+Or reverse
+
+👉 System must handle BOTH cases
+
+✅ REQUIRED BEHAVIOR
+Never overwrite full dataset
+Always MERGE
+Always preserve previous data
+Only fill missing fields
+🔥 FINAL EXPECTED RESULT
+
+After paste(s), system produces:
+
+[
+  {
+    "event_name": "...",
+    "event_date": "...",
+    "opponent": "...",
+    "result": "...",
+    "method": "...",
+    "round": 3,
+    "time": "4:32",
+    "stats": { ... }
+  }
+]
+💥 WHY THIS IS IMPORTANT
+
+Right now:
+
+Missing dates ❌
+Single-format assumption ❌
+Overwrites ❌
+
+With this:
+
+Multi-source compatible ✅
+Complete fight records ✅
+Correct ordering ✅
+No duplicates ✅

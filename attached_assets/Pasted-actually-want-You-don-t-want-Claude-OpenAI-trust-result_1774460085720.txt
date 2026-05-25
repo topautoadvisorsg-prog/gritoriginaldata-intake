@@ -1,0 +1,178 @@
+actually want)
+
+You don’t want:
+
+Claude → OpenAI → trust result
+
+You want:
+
+Raw Input → Claude Parse → OpenAI AUDIT → Human Decision (if needed)
+
+🧱 Your New Pipeline (clean + safe)
+STEP 1 — RAW INPUT (LOCKED)
+Save EXACT paste (UFCStats / Tapology)
+Never modify it
+Store it like:
+{
+  "raw_input": "...full pasted text..."
+}
+
+👉 This is your court evidence
+
+STEP 2 — CLAUDE (Parser)
+Extract structured data
+Output fights, results, stats
+STEP 3 — OPENAI (AUDITOR, NOT REPLACER)
+
+This is where your idea needs fixing 👇
+
+👉 OpenAI should NOT “verify and overwrite”
+
+👉 It should:
+
+compare raw input vs parsed output
+flag inconsistencies
+🔍 What OpenAI SHOULD do
+
+Give it:
+
+{
+  "raw_text": "...",
+  "parsed_data": {...}
+}
+
+And ask:
+
+👉 “Does parsed_data MATCH raw_text?”
+
+Expected Output:
+{
+  "status": "ok" | "mismatch",
+  "issues": [
+    {
+      "field": "result",
+      "raw_value": "W",
+      "parsed_value": "Loss",
+      "confidence": "high"
+    }
+  ]
+}
+🚨 CRITICAL RULE
+
+👉 OpenAI NEVER modifies data
+👉 OpenAI ONLY flags problems
+
+💥 Why this matters
+
+If you let OpenAI “fix” things:
+
+It will sometimes guess ❌
+It will sometimes contradict the source ❌
+You’ll lose trust again ❌
+🧠 Your exact scenario (Win/Loss flip)
+
+Here’s how your system would behave AFTER this fix:
+
+You paste UFCStats:
+Fighter A def. Fighter B
+Claude parses:
+result = Loss ❌
+OpenAI audit:
+❌ MISMATCH DETECTED
+raw: "def."
+parsed: "Loss"
+
+👉 System:
+
+BLOCKS overwrite
+FLAGS issue
+Shows you
+✅ Add a SIMPLE Operator Layer (this is key)
+
+You don’t need anything fancy.
+
+Just:
+
+When conflict exists:
+Show:
+Raw text snippet
+Parsed value
+Highlight mismatch
+
+👉 Button:
+
+✅ Confirm correct value
+❌ Reject
+🧾 EXACT PROMPT FOR OPENAI (copy this)
+OpenAI Audit Prompt
+
+You are a data validation agent.
+
+Your job is to compare RAW TEXT (source of truth) against PARSED DATA.
+
+RULES:
+
+Do NOT guess
+Do NOT infer missing data
+Do NOT modify anything
+ONLY detect mismatches between raw text and parsed output
+
+Focus especially on:
+
+fight result (Win/Loss/Draw/NC)
+opponent name
+event name
+method
+
+If everything matches, return:
+
+{ "status": "ok", "issues": [] }
+
+If mismatches exist, return:
+
+{
+  "status": "mismatch",
+  "issues": [
+    {
+      "field": "result",
+      "raw_value": "...",
+      "parsed_value": "...",
+      "reason": "Parsed value does not match raw text"
+    }
+  ]
+}
+
+RAW TEXT:
+{{raw_input}}
+
+PARSED DATA:
+{{structured_output}}
+
+🔥 Extra Protection (you NEED this)
+Lock these fields after first correct insert:
+result 🔒
+opponent 🔒
+event_name 🔒
+
+👉 Only editable by:
+
+operator
+OR conflict resolution
+💬 Real Talk
+
+What you’re building now is no longer scraping.
+
+👉 You’re building a data integrity system
+
+That’s a different game.
+
+🚀 Final Simplified Flow
+Paste → Save RAW → Claude Parse → OpenAI Audit
+          ↓                ↓
+        STORAGE        FLAG ISSUES
+                           ↓
+                      Operator Review (if needed)
+                           ↓
+                        FINAL SAVE
+
+If you want next:

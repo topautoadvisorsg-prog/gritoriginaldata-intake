@@ -1,0 +1,111 @@
+All right, so those are two issues that I see that they were struggling a lot with, uh, that you mentioned as far as duplication files. So basically, uh, there's no files right now, right? So everything is gonna start from scratch, uh, every time an event comes up, that's when we add, you know, well, when a match is, uh, announced, that's when we create those fighter profiles. If it's not in our database, if it's in our database, we don't need to create it, we don't need to research anything, okay? We already got the information we need, and we can update as we call manually by file, right? What does that mean? That means that once we create this fighter for the first time, then it gets saved on the, on the data engine profile, okay? So now there should be a system where me, the operator, I tell the guys, like, hey, this is what's already here. We just need to find the rest of the names that are there, right? Oh yeah, this name's already here. Oh, this name is already here, okay? So, forget about that fucking name mix-up, bitch. You just needs to get it right the first time and fetch the info right, okay? The second issue, all right, there's a big-ass issue with the images, all right? So what I need is just a fucking simple, like, SOP type of tab where it shows me the prompt, like, basically the process, and I take it outside, not inside this app. The image does not get created inside this app anymore, right? That did not work. I'm gonna do everything outside, but I need a nice little process there, and I'm gonna get the image from outside the external, and I'm gonna, and I'm gonna upload it here to the data engine manually for each fighter, for each new fighter, okay?
+
+Got it — this actually simplifies things a lot.
+
+You’re basically saying:
+
+“I don’t want automation here. I want control + reliability.”
+
+That’s the right move, especially at your stage.
+
+🎯 What You Want (Clarified)
+✅ 1. No duplication problem (by process, not code)
+
+Instead of fixing with complex matching:
+
+You (operator) control fighter creation
+If fighter exists → reuse
+If not → create once, correctly
+
+👉 This is manual authority > automation guesswork
+
+✅ 2. Kill in-app image generation ❌
+
+Replace with:
+
+External generation → manual upload → clean + consistent
+
+Smart. DALL·E pipeline was adding:
+
+inconsistency
+failures
+unnecessary complexity
+🔥 So What We’re Building
+A new “Image SOP + Upload Flow” tab
+
+Simple, clean, operator-focused.
+
+🧩 Feature Breakdown (What I’m going to help you build)
+🖼️ 1. “Image SOP” Panel (Frontend)
+
+A dedicated section/tab that shows:
+
+✍️ The exact prompt to use externally
+
+Example:
+
+HEADSHOT PROMPT:
+Professional MMA fighter portrait, front-facing, neutral expression, sharp lighting, black background, photorealistic, high detail, no logos, no text
+
+SIZE:
+1024x1024
+
+---
+
+HALF BODY PROMPT:
+Professional MMA fighter half-body portrait (chest up), realistic anatomy, neutral pose, black background, cinematic lighting, photorealistic, no logos, no text
+
+SIZE:
+1024x1536 (crop if needed)
+
+👉 This becomes your standard operating procedure (SOP)
+
+📤 2. Manual Upload System (Already half-built)
+
+You already have:
+
+image_url
+body_image_url
+upload routes
+
+We’ll just:
+
+Improve UI:
+
+Per fighter:
+
+Upload Headshot
+Upload Body Image
+Show preview
+Show status:
+✅ Complete
+❌ Missing
+🧠 3. Operator Workflow (What YOU will do)
+
+This becomes your process:
+
+Step 1:
+
+Agent 1 → finds fighters
+
+Step 2:
+
+Check:
+
+Already exists? → skip
+New? → create
+Step 3:
+
+Go to Images Tab
+
+Copy prompt
+Generate externally (Midjourney / DALL·E / whatever)
+Step 4:
+
+Upload:
+
+Headshot
+Body image
+Step 5:
+
+Done — clean, consistent, controlled

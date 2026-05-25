@@ -1,0 +1,54 @@
+#6 - Data Engine Integration Readiness
+What & Why
+Full audit and fix of all gaps blocking the external data engine from successfully pushing fighter, fight history, event, news, and odds data through the existing webhook pipeline. The backend infrastructure (webhook, pipeline service, admin dashboard) is already built — this task resolves specific schema mismatches and logic gaps uncovered during investigation.
+
+Readiness Assessment — What's Already Working
+Webhook & Pipeline (Area 7 — Authentication)
+
+Webhook endpoint /api/webhooks/data-engine/webhook is live, validates x-data-engine-api-key, parses and validates all payload types with Zod, and queues entries to the dataPipeline table.
+Admin can set DATA_ENGINE_API_KEY via the System Settings panel (DataEngineConfigSection).
+Admin pipeline dashboard (DataPipelinePage.tsx) is fully wired with approve / reject / apply / bulk-approve workflow.
+Fighter Profiles (Area 1)
+
+Webhook receives and validates syncFighterSchema. Duplicate detection on firstName+lastName is in place. applyFighterData() handles create, update, and delete correctly.
+performance data stored as JSONB — field names match.
+⚠️ One gap: fighters.gym is notNull() in the DB schema but optional in the sync schema. A fighter record with no gym will crash on apply.
+Fighter Images (Area 3)
+
+imageUrl and bodyImageUrl stored as direct URLs. needsImage boolean flag exists. No re-hosting needed — data engine just provides URLs and they are stored directly.
+News and Intelligence (Area 4)
+
+newsArticles.layer field (standard | intelligence) is present and the UI applies correct visual treatment (amber/gold for intelligence signals in NewsCard.tsx).
+Intel feed ticker at /api/intel-feed is live and falls back gracefully to hardcoded items when the DB is empty — no action needed there.
+newsArticles.fighterReference and eventReference columns exactly match the UUID field names in syncNewsSchema — they map cleanly.
+Tags default to [] in the DB so applyNewsData will not fail even when no tag IDs are supplied.
+Odds (Area 6)
+
+eventFights.odds JSONB is ready for the { fighter1Odds, fighter2Odds, overUnder, source } format.
+lockedOdds is correctly set on every pick record at submission time in picksRoutes.ts (line 345).
+Line movement is tracked via fightOddsHistory table — both current odds and history are covered.
+Done looks like
+Sending a fighter create payload with no gym field no longer throws a DB error.
+Sending a fight create payload with location, fightType, eventName, eventDate populates correctly; sending without those optional fields also succeeds without crashing.
+Pick submission correctly checks event.lockTime first: if it is set and the current time is past it, the pick is rejected — in addition to the existing per-fight scheduledTime gate.
+A test webhook POST to /api/webhooks/data-engine/webhook for each sourceType (fighter, fight, event, news, odds) succeeds with HTTP 201 and queues an entry visible in the admin pipeline dashboard.
+All existing pick-submission and fight-scoring behaviour is unchanged.
+Out of scope
+Building new admin UI — the pipeline dashboard already exists.
+Tags auto-mapping from names to IDs for incoming news (tags default to empty; admin can add tags manually post-import).
+Fight card (eventFights) push — that is a separate future sourceType.
+Event lockTime enforcement outside of pick submission (scoring, leaderboard) — only pick-submission gate is in scope.
+Tasks
+Make fighters.gym nullable — Change the gym column from notNull() to nullable in the Drizzle schema and push the schema change to the DB. No data loss — existing rows keep their values.
+
+Fix fight history required fields — Add location (jsonb), fightType, eventName, and eventDate to syncFightHistorySchema as optional fields, and make those same columns nullable in the fightHistory Drizzle schema. Update applyFightData to pass them through correctly. Push the schema change.
+
+Wire event lockTime into pick locking — In picksRoutes.ts, after fetching the event, check if event.lockTime is set. If the current time is after event.lockTime, reject the pick submission (same 423 response as the existing fight-level lock). This check runs first, before the per-fight scheduledTime check.
+
+Relevant files
+shared/schema.ts:15-85
+shared/schema.ts:90-153
+shared/sync-schemas.ts
+server/services/dataEngineService.ts:244-305
+server/user/routes/picksRoutes.ts
+server/api/webhooks/dataEngineWebhook.ts

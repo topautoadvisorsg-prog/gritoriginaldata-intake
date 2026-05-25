@@ -1,0 +1,51 @@
+Good intelligence from their side. Let me pull the exact details they're asking about before responding.
+
+Good, I have everything needed to give the data engine developer a precise answer. This is a coordination response — no new tasks needed. Here's the full technical brief for their team:
+
+Confirmed: single webhook URL. Everything goes to POST /api/webhooks/data-engine/webhook. There are no individual /api/pipeline/* routes. All five source types use the same endpoint with sourceType in the wrapper to route them.
+
+Wrapper shape for all pushes:
+
+{
+  "sourceType": "fighter",
+  "sourceId": "<uuid-of-existing-record-for-updates-only>",
+  "actionType": "create",
+  "dataType": "mma_data",
+  "data": { ... }
+}
+sourceId is only needed for update and delete actions — it's the internal GRIT UUID of the record to modify. dataType can be omitted; it defaults to "mma_data".
+
+Performance block — use snake_case exactly:
+
+ko_wins, tko_wins, submission_wins, decision_wins,
+finish_rate, strike_accuracy, strike_defense,
+takedown_avg, takedown_accuracy, takedown_defense,
+strikes_landed_per_min, strikes_absorbed_per_min,
+submission_avg, losses_by_ko, losses_by_submission,
+losses_by_decision, longest_win_streak
+All floats/ints, all optional. If their internal names are camelCase they need to remap before pushing.
+
+gym vs team — the field is called gym on our end, not team. We're making it nullable as part of Task #6, so omitting it won't crash the apply step. But if they have a gym value they should send it as gym.
+
+bodyImageUrl — optional URL for a full-body or half-body portrait, distinct from the face profile imageUrl. This is displayed in fighter cards in the app. If the data engine doesn't have it, simply omit the field — it's nullable.
+
+Fight history location shape — we're making this nullable in Task #6 so they can push without it. When they do send it, the expected shape is:
+
+{
+  "city": "Las Vegas",
+  "state": "Nevada",
+  "country": "USA",
+  "venue": "T-Mobile Arena"
+}
+state and venue are optional. city and country are preferred.
+
+fightType — nullable after Task #6. When sent, values like "Bout", "Title Bout", "Interim Title Bout".
+
+eventName and eventDate — these are snapshot fields that snapshot the event name and date at the time the fight history record is written. They'll become nullable after Task #6 so they don't block pushes, but if the data engine knows the event name/date, include them.
+
+News fighterReference and eventReference — both are optional UUID fields pointing to existing fighters and events in our DB. If the data engine can resolve a GRIT internal UUID for a mentioned fighter, send it. If not, omit — the field defaults to null and the article publishes cleanly without the link.
+
+What Task #6 unlocks for them:
+Once we ship Task #6, their pushes can succeed even without gym, location, fightType, eventName, and eventDate. They can push a minimal fight history payload with just fighterId, eventId, opponentName, result, method, round, time, fightDurationSeconds, boutOrder and it will apply cleanly.
+
+The bottom line for their team: fix the push URL first (Task 1 on their side), then match the performance field names to snake_case, and they can start doing real end-to-end tests while we finish Task #6 on our side in parallel.

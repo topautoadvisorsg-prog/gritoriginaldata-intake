@@ -1,0 +1,48 @@
+Priority 1 — Critical (Immediate wins, biggest UI impact)
+News table migration
+Create the news table in Supabase so Agent 4/5 can write.
+Once live, the News page will start showing articles.
+Events page field name fix
+Map API fields to frontend expectations:
+event.date → event_date
+event.name → event_name
+event.organization → promotion
+Makes event cards display correctly.
+Fighters page name fix
+Combine first_name + last_name → name for frontend cards.
+Names will now render properly.
+Agent 7 image generation / storage
+Ensure fighter-images bucket exists and is public.
+Trigger Agent 7 to download headshots and generate half-body DALL-E 3 images.
+Fixes broken headshots in Fighters page and Images page.
+Two stuck fighters (profiling)
+Debug why Yousri Belgaroui and Mansur Abdul-Malik are stuck.
+Add error surfacing/logging so future stuck jobs are visible.
+Retry mechanism for failed profiling jobs.
+Priority 2 — Medium (misleading or incomplete UI / UX improvements)
+PUSH buttons bypass review
+Restrict Monitor & Fighters page PUSH buttons to approved fighters only.
+Dashboard zeros on load
+Add proper loading/error handling for stat cards.
+Show a spinner or “loading…” message if API fetch hasn’t completed.
+Review “Total Approved” counter
+Fix aggregation endpoint or frontend mapping to reflect approved fighters.
+Agent 6 deduplication
+Prevent duplicate odds rows when re-running Agent 6.
+Live Pipeline Feed dots
+Connect dots to actual agent status or hide until functional.
+Priority 3 — Low (known data gaps, optimizations)
+reach_cm, leg_reach_cm, detailed strike/takedown stats → null
+Acceptable; Sherdog doesn’t provide these consistently.
+event_fights only captures fighters present at scan time
+Consider backfill after scan if needed.
+Queue never auto-clears completed jobs
+Implement auto-clean on scheduler tick.
+Agents 2 & 3 double Brave Search
+Optional optimization — cache Sherdog URL fetch results.
+
+✅ Next Steps:
+
+Start with Priority 1 fixes — these give the biggest visual/UI impact immediately.
+Once live, test the UI with real events, fighters, and news — it should go from looking like a mockup to fully interactive.
+Medium and low priorities can be handled in parallel as time allows.

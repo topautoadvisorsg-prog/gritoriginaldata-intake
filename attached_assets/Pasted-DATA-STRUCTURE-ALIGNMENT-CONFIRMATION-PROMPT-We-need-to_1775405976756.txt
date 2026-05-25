@@ -1,0 +1,113 @@
+DATA STRUCTURE ALIGNMENT + CONFIRMATION PROMPT
+
+We need to confirm and lock the data structure between the data engine and main app before continuing ingestion at scale.
+
+The goal is to ensure:
+
+Clean, structured data (no blobs)
+Proper ownership boundaries
+Full support for filtering, querying, and future analytics
+1. Event Handling (Critical Confirmation)
+
+Based on your previous statement:
+
+“Events exist only as context for fight history and are not standalone pushes”
+
+Please confirm the following implementation:
+
+Events are NOT stored as independent entities from the data engine
+However, event data IS stored as structured fields inside each fight record
+
+Example expectation:
+
+fight.event.name
+fight.event.date
+fight.event.location
+
+✅ Confirm:
+
+These are separate structured fields (not a single text field)
+They are queryable and filterable individually
+
+❓ If NOT:
+
+What is the current structure?
+What needs to be changed to support structured filtering?
+2. Fight History Structure (No Data Blobs)
+
+We need to avoid this:
+
+Entire fight history stored as one text/json blob
+
+We want:
+
+Each fight = its own structured record
+Each field explicitly defined and stored
+
+Example:
+
+fighter_id
+opponent_id
+result
+method
+round
+time
+event.name
+event.date
+
+✅ Confirm:
+
+Fight history is stored as individual structured entries
+Fields are not nested in a way that prevents filtering
+
+❓ If NOT:
+
+What is the current storage format?
+What changes are required to normalize it?
+3. Filtering + Query Capability
+
+We need to confirm that the system supports:
+
+Filtering by event name
+Filtering by event date
+Filtering by opponent
+Filtering by result/method
+
+✅ Confirm:
+
+These fields are indexed or queryable
+No transformation is required to access them
+4. Data Ownership Boundaries
+
+Confirm final architecture:
+
+Data Engine:
+Fighters ✅
+Fights ✅
+Event data (embedded only) ✅
+Main App:
+Standalone events ✅
+Live events ✅
+Odds ✅
+5. Required Actions (if misaligned)
+
+If any part of the above is NOT implemented correctly:
+
+Provide:
+
+What is currently implemented
+What needs to change
+Exact update plan:
+Schema changes
+Field restructuring
+Migration (if needed)
+6. Output Required
+
+Return:
+
+Confirmation of current structure
+Any mismatches with expected structure
+Exact changes required (if any)
+Timeline to implement fixes
+
+Do not give general answers. Be precise about schema, storage, and query behavior.

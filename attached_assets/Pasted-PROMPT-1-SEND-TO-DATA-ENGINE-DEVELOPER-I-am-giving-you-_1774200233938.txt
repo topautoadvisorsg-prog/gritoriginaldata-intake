@@ -1,0 +1,16 @@
+PROMPT 1 — SEND TO DATA ENGINE DEVELOPER:
+
+I am giving you the exact field specification used to research and collect fighter data. These are the fields your agents need to be collecting and pushing to the main app. Go through every single field below and confirm it is being collected and transmitted. If any field is missing from your agents tell me which one and we will add it.
+EVENT FIELDS — Agent 1 must collect and push all of these:
+name, date, venue, city, state, country, organization, status, boutOrder, cardPlacement, fighter1Name, fighter2Name, weightClass, isTitleFight, rounds, lockTime, posterUrl
+FIGHTER PROFILE FIELDS — Agent 2 must collect and push all of these:
+first_name, last_name, nickname, date_of_birth, nationality, gender, weight_class, stance, gym, head_coach, fighting_out_of, height_inches, reach_inches, leg_reach_inches, wins, losses, draws, no_contests, organization, ranking, is_champion, image_url, ko_wins, submission_wins, decision_wins, losses_by_ko, losses_by_submission, losses_by_decision, strikes_landed_per_min, strike_accuracy, strikes_absorbed_per_min, strike_defense, takedown_avg, takedown_accuracy, takedown_defense, submission_avg, performance_kotko_win_pct, performance_submission_win_pct, performance_decision_win_pct, social_media.twitter, social_media.instagram, social_media.website, fightingStyle, status, needs_image
+FIGHT HISTORY FIELDS — Agent 3 must collect and push all of these:
+fighterId, opponentName, opponentNickname, opponentLinked, eventName, eventDate, eventPromotion, result, method, methodDetail, round, time, fightDurationSeconds, roundsScheduled, roundTimeFormat, weightClass, titleFight, titleFightDetail, billing, boutOrder, referee, locationCity, locationCountry, fightType, judgeScores, stats_knockdowns, stats_sigStrLanded, stats_sigStrAttempted, stats_sigStrPct, stats_totalStrLanded, stats_totalStrAttempted, stats_tdLanded, stats_tdAttempted, stats_tdPct, stats_subAttempts, stats_reversals, stats_controlTime, stats_headLanded, stats_headAttempted, stats_bodyLanded, stats_bodyAttempted, stats_legLanded, stats_legAttempted, stats_distanceLanded, stats_distanceAttempted, stats_clinchLanded, stats_clinchAttempted, stats_groundLanded, stats_groundAttempted
+Go through every single field. For each one tell me:
+
+Is it being collected by the correct agent
+Is it being transmitted to the main app in the correct format
+If it is missing or wrong tell me exactly which agent needs to be updated
+
+Do not tell me everything is fine if it is not. Report back field by field.

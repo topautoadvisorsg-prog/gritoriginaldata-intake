@@ -1,0 +1,65 @@
+This is a thorough and honest report. Here is my full breakdown before you respond to him:
+
+THE CRITICAL PROBLEMS — FIX THESE BEFORE ANYTHING ELSE:
+🔴 Daily event scan is a no-op
+The scheduler fires every day at 8 AM UTC but the function body is literally just pass. Nothing happens. No events get ingested automatically. This is the most critical bug in the entire data engine. Without this nothing is automated.
+🔴 Claude silent failures
+When Claude returns an empty response the agent just writes garbage defaults to the database — wins=0, nationality=Unknown, everything blank. No error raised. No flag set. Bad data goes straight into the DB silently. This needs to fail loudly and skip the upsert instead.
+🔴 Name normalization missing
+Jon Jones and Jonathan Jones would create two separate fighter records. This will absolutely happen in production. Needs fuzzy matching and alias handling before we start ingesting real fighters.
+
+MEDIUM PRIORITY — FIX BEFORE LIVE TESTING:
+🟡 Agent 7 — DALL-E 3 generates random AI faces that look nothing like real fighters. This is a product concern. Users will immediately notice the portraits do not look like the actual fighters. We need to discuss this separately.
+🟡 Fight history has no deduplication. Running Agent 3 twice on the same fighter appends duplicate rows. Needs a unique constraint on fighter_id plus event_name plus opponent_name.
+🟡 Agent 4 news — same articles being inserted every 45 minutes. No URL or title uniqueness check. The news feed will fill up with duplicates fast.
+🟡 Covers.com is always blocked and adds dead latency. Remove it. Go straight to OddsShark as fallback.
+🟡 Method odds always null because BestFightOdds serves them via JavaScript. Plain requests cannot execute JavaScript. This is a data gap — we are missing KO, submission, and decision lines entirely.
+🟡 CrewAI being used as a wrapper around single tool functions with no delegation. Pure overhead. Should be direct function calls.
+
+LOW PRIORITY — CLEAN UP BUT NOT BLOCKING:
+🟢 Delete TapologyScraper — dead code, all methods empty
+🟢 Delete BraveSearch.find_event_url() — never called
+🟢 Delete pipeline_manager._parse_to_seconds() — duplicate never used
+🟢 Remove Brave Image Search from Agent 7 — 3 API calls per fighter that do literally nothing since DALL-E 3 cannot use reference images anyway
+
+THE AGENT 7 IMAGE PROBLEM — NEEDS A DECISION FROM YOU
+This is the biggest product concern in the whole report. DALL-E 3 generates AI portraits with random faces. They will not look like the real fighters at all. Islam Makhachev will have a random face. Alex Volkanovski will look like nobody. Users will notice immediately and it will hurt credibility.
+Three options:
+Option A — UFC press kit or Getty Images licensing. Real photos, properly licensed. Costs money but is the right long term answer.
+Option B — Scrape fighter photos directly from Tapology or Sherdog profile pages and use those as the image URL. No generation needed. Real photos. This is what the original spec described before Replicate was added.
+Option C — Keep DALL-E 3 for now as a placeholder aesthetic and replace with real photos when licensing is sorted.
+What do you want to do on this?
+
+SEND HIM THIS RESPONSE:
+
+Good work on the audit. Honest and thorough. Here is exactly what needs to be fixed in priority order.
+Fix immediately before anything else:
+1. Daily event scan
+The scheduler job fires at 8 AM UTC but the body is pass. Nothing is automated without this. Implement daily_event_scan properly — it needs to call scan_and_record_event() for every upcoming UFC event in the next 30 days. This is the most critical fix in the entire engine.
+2. Claude failure handling
+When ClaudeClient.analyze() returns an empty response or missing required keys do not proceed with the upsert. Mark the queue job as error status and skip the DB write entirely. Log what happened. Never write garbage defaults to the database silently.
+3. Name normalization
+Before any fighter upsert normalize the name — lowercase, trim whitespace, strip extra characters. Check against existing records using fuzzy matching not exact string match. Add an aliases field to the fighter record if it does not exist. Jon Jones and Jonathan Jones must not create two records.
+Fix before live testing:
+4. Fight history deduplication
+Add a unique constraint on fighter_id plus event_name plus opponent_name in the fight_history table. On conflict update instead of insert duplicate. Batch insert fight history rows instead of one DB roundtrip per bout.
+5. News deduplication
+Before inserting any news article check if a record with the same URL or title already exists. If it does skip it. Add a unique constraint on article URL. The feed cannot fill up with the same articles every 45 minutes.
+6. Remove Covers.com
+It is always Cloudflare blocked. Remove it entirely. BestFightOdds primary, OddsShark fallback. Done.
+7. Remove Brave Image Search from Agent 7
+DALL-E 3 cannot use reference images. The scraper runs 3 API calls per fighter that have zero effect. Remove ImageReferenceScraper entirely. Save the API quota.
+8. Remove CrewAI from single tool agents
+Agents 1 through 4 each have exactly one tool and no delegation. CrewAI adds initialization overhead for no benefit. Replace with direct function calls.
+Clean up — do after the above:
+
+Delete TapologyScraper entirely — dead code
+Delete BraveSearch.find_event_url() — never called
+Delete pipeline_manager._parse_to_seconds() — duplicate, never called
+Add Supabase Storage bucket existence check on Agent 7 startup
+
+One question that needs your answer:
+Agent 7 generates AI portraits with DALL-E 3 that look nothing like the real fighters. Random faces. Not the actual person. This is a product credibility issue. Before you do anything else on Agent 7 tell me — can you scrape the actual fighter photo URL directly from Tapology or Sherdog profile page and store that as the image URL instead of generating a fake portrait. That would give us real photos immediately without any API cost. Tell me if that is feasible and how long it would take.
+API keys you need:
+Confirm exactly which API keys are missing and what each one unlocks. List every single one. We will get them loaded as soon as you confirm the above fixes are in place.
+Report back when the three critical fixes are done. We review then move to live testing.
