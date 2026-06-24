@@ -22,8 +22,8 @@ const MONITOR_KEYS: KeyDef[] = [
     name: 'MAIN_APP_API_URL',
     label: 'GRIT App URL',
     required: true,
-    description: 'Base URL of the GRIT platform (e.g. https://grit-1.replit.app). All webhook pushes and fight-card lookups go here. Missing this means no data reaches the main app.',
-    placeholder: 'https://grit-1.replit.app',
+    description: 'Base URL of the GRIT platform (e.g. https://gritoriginal-production.up.railway.app). All webhook pushes and fight-card lookups go here. Missing this means no data reaches the main app.',
+    placeholder: 'https://gritoriginal-production.up.railway.app',
   },
   {
     name: 'SUPABASE_API_KEY',

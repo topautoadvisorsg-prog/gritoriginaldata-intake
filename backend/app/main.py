@@ -200,7 +200,7 @@ async def test_connection():
         import ssl
         main_app_url = os.environ.get("MAIN_APP_API_URL", "").rstrip("/")
         webhook_url = f"{main_app_url}/api/webhooks/data-engine/webhook"
-        # Use the system CA store (certifi misses Replit's cert; system store includes it)
+        # Use the system CA store for TLS verification (works on Railway + locally)
         system_ca = ssl.get_default_verify_paths().cafile or True
         resp = requests.get(main_app_url, timeout=10, verify=system_ca)
         results["grit_webhook"] = {

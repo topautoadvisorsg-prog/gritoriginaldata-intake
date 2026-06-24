@@ -1,7 +1,7 @@
 import os
 import ssl
+import certifi
 import requests
-import urllib3
 from app.agents.agent1_event.agent import EventAgent
 from app.agents.agent2_profile.agent import ProfileAgent
 from app.agents.agent3_history.agent import HistoryAgent
@@ -19,11 +19,9 @@ WEBHOOK_PATH = "/api/data-engine/webhook"
 # Set to False to re-enable automated scraping once data quality is confirmed.
 MANUAL_INGESTION_MODE = True
 
-# Replit's TLS cert isn't in certifi's bundle; use the system CA store instead.
-# This is safe for our internal Replit-to-Replit calls.
-_SSL_VERIFY = ssl.get_default_verify_paths().cafile or False
-if not _SSL_VERIFY:
-    urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+# Verify TLS using the system CA store when available, otherwise fall back to
+# certifi's CA bundle. Never disable verification (that was a Replit-only shortcut).
+_SSL_VERIFY = ssl.get_default_verify_paths().cafile or certifi.where()
 
 class PipelineManager:
     def __init__(self):
