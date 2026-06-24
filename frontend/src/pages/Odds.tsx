@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { TrendingUp, RefreshCcw, CheckCircle, XCircle, Trash2, ChevronDown } from 'lucide-react';
+import { TrendingUp, RefreshCcw, CheckCircle, XCircle, Trash2 } from 'lucide-react';
 import { getOdds, triggerOddsPull, approveOdds, rejectOdds, deleteOdds } from '../api';
 import { ApiKeyPanel, type KeyDef } from '../components/ApiKeyPanel';
 

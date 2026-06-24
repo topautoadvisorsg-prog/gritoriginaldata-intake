@@ -97,9 +97,11 @@ class EventScanRequest(BaseModel):
 
 # ── Root ──────────────────────────────────────────────────────────────────────
 
-@app.get("/")
-async def root():
-    return {"message": "MMA Data Ingestion Pipeline API is running"}
+@app.get("/healthz")
+async def healthz():
+    """Health check (used by Railway). The root path '/' now serves the
+    operator dashboard in single-service mode."""
+    return {"status": "ok", "service": "MMA Data Ingestion Pipeline API"}
 
 # ── Stats ─────────────────────────────────────────────────────────────────────
 
@@ -1258,5 +1260,29 @@ async def log_activity(entry: dict):
         return {"status": "error", "detail": str(e)}
 
 
+# ── Single-service: serve the built operator dashboard ─────────────────────────
+# In production FastAPI serves the compiled React dashboard from frontend/dist.
+# All API routes are registered above, so they match first; the catch-all below
+# only handles the SPA shell + client-side routes. No-op in dev (no dist build).
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
+
+_FRONTEND_DIST = os.path.abspath(
+    os.path.join(os.path.dirname(__file__), "..", "..", "frontend", "dist")
+)
+
+if os.path.isdir(_FRONTEND_DIST):
+    _assets_dir = os.path.join(_FRONTEND_DIST, "assets")
+    if os.path.isdir(_assets_dir):
+        app.mount("/assets", StaticFiles(directory=_assets_dir), name="assets")
+
+    @app.get("/{full_path:path}", include_in_schema=False)
+    async def serve_spa(full_path: str):
+        candidate = os.path.join(_FRONTEND_DIST, full_path)
+        if full_path and os.path.isfile(candidate):
+            return FileResponse(candidate)
+        return FileResponse(os.path.join(_FRONTEND_DIST, "index.html"))
+
+
 if __name__ == "__main__":
-    uvicorn.run("app.main:app", host="0.0.0.0", port=8000, reload=True)
+    uvicorn.run("app.main:app", host="0.0.0.0", port=int(os.environ.get("PORT", 8000)), reload=True)

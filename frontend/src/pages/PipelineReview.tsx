@@ -2,20 +2,21 @@ import { useState, useEffect, useCallback } from 'react';
 import {
   CheckCircle, XCircle, Clock, Activity, AlertTriangle, Users,
   TrendingUp, RefreshCcw, ChevronRight, X, Edit2, Save,
-  RotateCcw, Image, Zap, Search,
+  RotateCcw, Image, Search,
 } from 'lucide-react';
 import {
   getReviewCounts, getReviewFighters, getReviewFighter,
   approveFighter, rejectFighter, restoreFighter, editFighter,
-  getReviewNews, approveNews, rejectNews, editNews,
+  getReviewNews, approveNews, rejectNews,
   getOdds, approveOdds, rejectOdds,
   getNeedsAttention, getActivityLog,
 } from '../api';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
-type Fighter = Record<string, unknown>;
-type NewsItem = Record<string, unknown>;
+// Loosely-shaped rows from the review API — fields vary by ingestion source.
+type Fighter = Record<string, any>;
+type NewsItem = Record<string, any>;
 type OddsItem = Record<string, unknown>;
 type FightBout  = Record<string, unknown>;
 type LogEntry   = Record<string, unknown>;
@@ -49,13 +50,6 @@ function relTime(iso: unknown): string {
     if (diff < 86400) return `${Math.round(diff / 3600)}h ago`;
     return `${Math.round(diff / 86400)}d ago`;
   } catch { return '—'; }
-}
-function badge(val: unknown, trueClass: string, falseClass: string, trueLabel: string, falseLabel: string) {
-  return (
-    <span className={`px-1.5 py-0.5 rounded text-[10px] font-black uppercase tracking-wider ${val ? trueClass : falseClass}`}>
-      {val ? trueLabel : falseLabel}
-    </span>
-  );
 }
 
 const STAT = ({ label, value, sub, loading }: { label: string; value: string | number; sub?: string; loading?: boolean }) => (

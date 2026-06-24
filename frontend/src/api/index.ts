@@ -1,7 +1,10 @@
 import axios from 'axios';
 
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || '/api',
+  // Dev: hit '/api' so Vite's proxy forwards to the backend (and strips '/api').
+  // Prod (single Railway service): FastAPI serves this dashboard, so call the
+  // API on the same origin at the root ('') — e.g. '/pipeline/stats'.
+  baseURL: import.meta.env.VITE_API_URL || (import.meta.env.DEV ? '/api' : ''),
 });
 
 // Stats

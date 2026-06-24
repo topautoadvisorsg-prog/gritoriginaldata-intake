@@ -1,0 +1,22 @@
+# Keep the build context small and never ship secrets/caches.
+.git
+**/node_modules
+**/dist
+**/__pycache__
+**/*.pyc
+.venv
+venv
+.local
+.config
+
+# Secrets & local runtime state — provided via Railway env vars instead
+.env
+*.env
+!**/.env.example
+backend/.api_keys.json
+backend/.pipeline_queue.json
+
+# Misc local artifacts
+attached_assets
+*.log
+output*.txt
