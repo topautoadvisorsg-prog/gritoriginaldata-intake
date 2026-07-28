@@ -49,7 +49,7 @@ def _extract_json(text: str) -> str:
 
 class ClaudeClient:
     def __init__(self):
-        self.model = "claude-sonnet-4-20250514"
+        self.model = "claude-sonnet-4-6"
         self._client = None
 
     @property
