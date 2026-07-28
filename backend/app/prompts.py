@@ -135,6 +135,19 @@ This is ONE bout. Use the W/L label for the named fighter to determine result.
 The opponent is the other fighter on the card. No event date — leave event_date null.
 Return an array with exactly one object.
 
+FORMAT E — Multiple Format-B blocks stacked in one paste (a UFCStats fighter's
+full history page with per-fight stats tables for EVERY fight, not just a list):
+Treat this as N independent bout blocks, each shaped exactly like Format B, one
+after another. Process each block in complete isolation — do not let one block's
+stats table, fighter order, or W/L layout influence your reading of the next
+block. For EACH block: find the named fighter's name, then read the single
+letter (W/L/D/NC) that appears immediately above/before that name in THAT
+block only — never infer it from a stats table row order, knockdown counts, or
+which fighter is listed first in the table. Extract every block as a separate
+bout object with its own bout_stats. This is the most error-prone format for
+result accuracy — re-check each W/L pairing against the fighter's name before
+finalizing.
+
 FORMAT C — Tapology fight history page:
 Rows are line-separated (not tabular). Each bout block starts with the result letter (W/L/D)
 or "C" for cancelled, then method, then opponent name, then records, then ranking, then method
