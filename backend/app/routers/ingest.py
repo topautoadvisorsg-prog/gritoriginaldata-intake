@@ -9,6 +9,7 @@ Completely separate from the scraping pipeline.
 """
 import io
 import json
+import uuid
 from typing import Any, Optional
 from fastapi import APIRouter, HTTPException, UploadFile, File
 from pydantic import BaseModel
@@ -480,19 +481,31 @@ async def ingest_approve(req: ApproveRequest):
         # Build a local event-name → event_id cache to avoid N+1 queries
         _event_id_cache: dict[str, str] = {}
         NIL_UUID = "00000000-0000-0000-0000-000000000000"
+        # Fixed namespace for deterministic placeholder event IDs. A single shared
+        # NIL_UUID for every unscanned event collides with the (fighter_id, event_id)
+        # unique constraint as soon as one fighter has 2+ bouts at events that were
+        # never scanned into the `events` table (the normal case in manual-only mode).
+        # Deriving a distinct UUID per normalised event name keeps that constraint
+        # meaningful instead of blocking every multi-fight history batch.
+        _PLACEHOLDER_EVENT_NAMESPACE = uuid.UUID("6f1a9b7e-6b7a-4e4c-9c3e-2a6f9d6b8e3a")
 
         def _resolve_event_id(raw_name: str) -> str:
-            """Look up event UUID by normalised name; fall back to nil UUID."""
+            """Look up event UUID by normalised name; fall back to a deterministic
+            per-name placeholder UUID (not a shared nil UUID) to avoid collisions."""
             norm = _normalize_event_name(raw_name)
             if not norm:
                 return NIL_UUID
             if norm in _event_id_cache:
                 return _event_id_cache[norm]
+            eid = None
             try:
                 res = supabase.table("events").select("id,name").ilike("name", f"{norm}%").limit(1).execute()
-                eid = res.data[0]["id"] if res.data else NIL_UUID
+                if res.data:
+                    eid = res.data[0]["id"]
             except Exception:
-                eid = NIL_UUID
+                eid = None
+            if not eid:
+                eid = str(uuid.uuid5(_PLACEHOLDER_EVENT_NAMESPACE, norm.lower()))
             _event_id_cache[norm] = eid
             return eid
 
