@@ -77,6 +77,15 @@ export const ingestApprove = (payload: { type: string; data: any; fighter_id?: s
   api.post('/ingest/approve', payload);
 export const searchFightersForIngest = (q: string) =>
   api.get(`/ingest/fighters/search?q=${encodeURIComponent(q)}`);
+export const extractIngestFile = (file: File) => {
+  const form = new FormData();
+  form.append('file', file);
+  return api.post<{ status: string; filename: string; text: string }>(
+    '/ingest/extract-file',
+    form,
+    { headers: { 'Content-Type': 'multipart/form-data' } },
+  );
+};
 
 // API Key Config
 export const getKeysStatus = () => api.get<Record<string, boolean>>('/config/keys/status');

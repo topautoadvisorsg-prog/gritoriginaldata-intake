@@ -7,9 +7,10 @@ Two-step workflow:
 
 Completely separate from the scraping pipeline.
 """
+import io
 import json
 from typing import Any, Optional
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, UploadFile, File
 from pydantic import BaseModel
 from app.database.supabase_client import get_supabase
 from app.utils.claude_utils import get_claude, ClaudeEmptyResponseError, ClaudeOverloadedError
@@ -247,6 +248,63 @@ def _enrich_bout_dates(bouts: list) -> list:
             b = {**b, "event_date": date_cache[name]}
         enriched.append(b)
     return enriched
+
+
+# ── File upload → text extraction ───────────────────────────────────────────────
+
+def _extract_text_from_docx(raw_bytes: bytes) -> str:
+    from docx import Document
+
+    doc = Document(io.BytesIO(raw_bytes))
+    parts: list[str] = []
+
+    for para in doc.paragraphs:
+        if para.text.strip():
+            parts.append(para.text)
+
+    for table in doc.tables:
+        for row in table.rows:
+            cells = [c.text.strip() for c in row.cells]
+            if any(cells):
+                parts.append("\t".join(cells))
+
+    return "\n".join(parts)
+
+
+@router.post("/extract-file")
+async def extract_file(file: UploadFile = File(...)):
+    """
+    Extract plain text from an uploaded source file so the operator doesn't
+    have to copy/paste. Returns the text for the SAME /ingest/raw + /ingest/approve
+    review flow — this endpoint never writes to the database.
+    """
+    filename = file.filename or "upload"
+    ext = filename.rsplit(".", 1)[-1].lower() if "." in filename else ""
+    raw_bytes = await file.read()
+
+    if not raw_bytes:
+        raise HTTPException(400, "Uploaded file is empty")
+
+    try:
+        if ext == "docx":
+            text = _extract_text_from_docx(raw_bytes)
+        elif ext in ("txt", "md", "csv"):
+            text = raw_bytes.decode("utf-8", errors="replace")
+        else:
+            raise HTTPException(
+                400,
+                f"Unsupported file type '.{ext}'. Upload .docx, .txt, .md, or .csv — "
+                "for PDFs, copy/paste the text instead.",
+            )
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(400, f"Could not read '{filename}': {e}")
+
+    if not text.strip():
+        raise HTTPException(400, f"No text found in '{filename}' — file may be empty or image-only.")
+
+    return {"status": "ok", "filename": filename, "text": text}
 
 
 # ── Endpoints ──────────────────────────────────────────────────────────────────

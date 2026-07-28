@@ -1,10 +1,10 @@
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 import {
-  GitMerge, ChevronRight, CheckCircle, Zap, Search, X, AlertTriangle, 
+  GitMerge, ChevronRight, CheckCircle, Zap, Search, X, AlertTriangle,
   ChevronUp, ChevronDown, Trash2, Clock, BarChart3, ListChecks,
-  XCircle, Edit2, RotateCcw,
+  XCircle, Edit2, RotateCcw, Upload, FileText,
 } from 'lucide-react';
-import api, { crossReferenceEvent } from '../api';
+import api, { crossReferenceEvent, extractIngestFile } from '../api';
 
 type IngestType = 'fighter_profile' | 'fight_history';
 
@@ -743,8 +743,31 @@ export default function ManualIngest() {
   const [editMode, setEditMode]     = useState(false);
   const [duplicateWarning, setDuplicateWarning] = useState<{ id: string; name: string } | null>(null);
   const [addFighterHint, setAddFighterHint] = useState<string | null>(null);
+  const [uploadingFile, setUploadingFile] = useState(false);
+  const [uploadedFileName, setUploadedFileName] = useState<string | null>(null);
+  const [uploadError, setUploadError] = useState<string | null>(null);
 
   const pasteRef = useRef<HTMLTextAreaElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleFileSelected = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = ''; // allow re-selecting the same file later
+    if (!file) return;
+
+    setUploadingFile(true);
+    setUploadError(null);
+    try {
+      const res = await extractIngestFile(file);
+      setRawText(res.data.text);
+      setUploadedFileName(res.data.filename);
+    } catch (err: any) {
+      setUploadError(err?.response?.data?.detail || 'Could not extract text from that file');
+      setUploadedFileName(null);
+    } finally {
+      setUploadingFile(false);
+    }
+  };
 
   // ── Cross-reference state (lifted — persists across approve/reset cycles) ──
   const [crossRefEventName, setCrossRefEventName] = useState('');
@@ -1335,10 +1358,37 @@ export default function ManualIngest() {
                         </span>
                       )}
                     </label>
-                    {hasSession && (
-                      <span className="text-[10px] text-muted/50">Session active — new paste will merge</span>
-                    )}
+                    <div className="flex items-center gap-2">
+                      {hasSession && (
+                        <span className="text-[10px] text-muted/50">Session active — new paste will merge</span>
+                      )}
+                      <input
+                        ref={fileInputRef}
+                        type="file"
+                        accept=".docx,.txt,.md,.csv"
+                        className="hidden"
+                        onChange={handleFileSelected}
+                      />
+                      <button
+                        onClick={() => fileInputRef.current?.click()}
+                        disabled={uploadingFile}
+                        className="flex items-center gap-1 text-[10px] font-bold uppercase tracking-wide px-2 py-1 rounded border border-border/60 text-muted hover:text-accent hover:border-accent/40 disabled:opacity-40 transition-colors"
+                      >
+                        <Upload size={11} />
+                        {uploadingFile ? 'Extracting...' : 'Upload File'}
+                      </button>
+                    </div>
                   </div>
+                  {uploadedFileName && !uploadError && (
+                    <div className="flex items-center gap-1.5 mb-2 text-[10px] text-accent/80">
+                      <FileText size={10} /> Loaded from {uploadedFileName} — review below, then Parse
+                    </div>
+                  )}
+                  {uploadError && (
+                    <div className="mb-2 text-[10px] text-red-400 bg-red-500/10 border border-red-500/20 rounded px-2 py-1.5">
+                      {uploadError}
+                    </div>
+                  )}
                   <textarea
                     ref={pasteRef}
                     className="flex-1 w-full bg-surface border border-border rounded-lg p-3 text-xs font-mono resize-none focus:outline-none focus:border-accent placeholder-muted/30 min-h-[200px]"

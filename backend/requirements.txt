@@ -12,3 +12,4 @@ openai
 Pillow
 firecrawl-py
 python-multipart
+python-docx
