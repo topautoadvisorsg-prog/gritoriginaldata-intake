@@ -9,7 +9,6 @@ Completely separate from the scraping pipeline.
 """
 import io
 import json
-import uuid
 from typing import Any, Optional
 from fastapi import APIRouter, HTTPException, UploadFile, File
 from pydantic import BaseModel
@@ -481,17 +480,20 @@ async def ingest_approve(req: ApproveRequest):
         # Build a local event-name → event_id cache to avoid N+1 queries
         _event_id_cache: dict[str, str] = {}
         NIL_UUID = "00000000-0000-0000-0000-000000000000"
-        # Fixed namespace for deterministic placeholder event IDs. A single shared
-        # NIL_UUID for every unscanned event collides with the (fighter_id, event_id)
-        # unique constraint as soon as one fighter has 2+ bouts at events that were
-        # never scanned into the `events` table (the normal case in manual-only mode).
-        # Deriving a distinct UUID per normalised event name keeps that constraint
-        # meaningful instead of blocking every multi-fight history batch.
-        _PLACEHOLDER_EVENT_NAMESPACE = uuid.UUID("6f1a9b7e-6b7a-4e4c-9c3e-2a6f9d6b8e3a")
 
-        def _resolve_event_id(raw_name: str) -> str:
-            """Look up event UUID by normalised name; fall back to a deterministic
-            per-name placeholder UUID (not a shared nil UUID) to avoid collisions."""
+        def _resolve_event_id(raw_name: str, event_date: Optional[str] = None) -> str:
+            """
+            Look up event UUID by normalised name. If no match exists, CREATE a
+            minimal events row instead of using a placeholder ID.
+
+            fight_history.event_id has both a foreign key to events(id) AND a
+            unique constraint on (fighter_id, event_id) - a placeholder UUID (nil
+            or a deterministic hash) either violates the FK (doesn't exist in
+            events) or collides across bouts at different unscanned events. A
+            real events row satisfies both: it exists, and each distinct event
+            name gets its own real id. This also means these events show up in
+            the Events tab immediately instead of staying invisible.
+            """
             norm = _normalize_event_name(raw_name)
             if not norm:
                 return NIL_UUID
@@ -505,7 +507,17 @@ async def ingest_approve(req: ApproveRequest):
             except Exception:
                 eid = None
             if not eid:
-                eid = str(uuid.uuid5(_PLACEHOLDER_EVENT_NAMESPACE, norm.lower()))
+                try:
+                    created = supabase.table("events").insert({
+                        "name": norm,
+                        "date": event_date,
+                        "status": "Completed",
+                        "organization": "UFC",
+                    }).execute()
+                    eid = created.data[0]["id"]
+                except Exception as e:
+                    print(f"[Ingest] Could not create event '{norm}' (falling back to nil UUID): {e}")
+                    eid = NIL_UUID
             _event_id_cache[norm] = eid
             return eid
 
@@ -532,7 +544,7 @@ async def ingest_approve(req: ApproveRequest):
 
             title_fight = bool(bout.get("title_fight", False))
             event_date  = bout.get("event_date")
-            event_id    = _resolve_event_id(bout.get("event_name") or "")
+            event_id    = _resolve_event_id(bout.get("event_name") or "", event_date)
             rows.append({
                 "fighter_id":            req.fighter_id,
                 "event_id":              event_id,
