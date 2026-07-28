@@ -508,11 +508,21 @@ async def ingest_approve(req: ApproveRequest):
                 eid = None
             if not eid:
                 try:
+                    # date/venue/city/state/country are NOT NULL with no default on
+                    # this schema. Manually-entered history rarely has all of these
+                    # (UFCStats history pages have neither date nor venue at all) -
+                    # use clearly-fake placeholders rather than let the whole batch
+                    # fail. "1900-01-01" and "Unknown" are easy to spot and backfill
+                    # later once a real event scan or manual edit provides the truth.
                     created = supabase.table("events").insert({
                         "name": norm,
-                        "date": event_date,
+                        "date": event_date or "1900-01-01",
                         "status": "Completed",
                         "organization": "UFC",
+                        "venue": "Unknown",
+                        "city": "Unknown",
+                        "state": "Unknown",
+                        "country": "Unknown",
                     }).execute()
                     eid = created.data[0]["id"]
                 except Exception as e:
