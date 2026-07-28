@@ -396,7 +396,9 @@ const ProfileForm = ({
         <h4 className="text-[10px] font-bold uppercase tracking-widest text-accent mb-2">Physical / Career</h4>
         <F label="height_inch"     k="height_inch"     type="number" />
         <F label="reach_inch"      k="reach_inch"      type="number" />
+        <F label="weight (lbs)"    k="weight"          type="number" />
         <F label="stance"          k="stance" />
+        <F label="style"           k="style" />
         <F label="gym"             k="gym" />
         <F label="fighting_out_of" k="fighting_out_of" />
         <F label="organization"    k="organization" />
@@ -831,9 +833,11 @@ export default function ManualIngest() {
       { key: 'nationality',         label: 'Nationality' },
       { key: 'wins',                label: 'Record (W)' },
       { key: 'losses',              label: 'Record (L)' },
-      { key: 'height',              label: 'Height' },
-      { key: 'reach',               label: 'Reach' },
+      { key: 'height_inch',         label: 'Height' },
+      { key: 'reach_inch',          label: 'Reach' },
+      { key: 'weight',              label: 'Weight (lbs)' },
       { key: 'stance',              label: 'Stance' },
+      { key: 'style',               label: 'Style' },
       { key: 'date_of_birth',       label: 'Date of Birth' },
       { key: 'fighting_out_of',     label: 'Fighting Out Of' },
       { key: 'slpm',                label: 'Strikes/Min' },

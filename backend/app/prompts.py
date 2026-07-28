@@ -78,12 +78,14 @@ PHYSICAL:
 - height_inch (float or null): Height in inches — convert from feet/inches if needed (e.g. 6'2" → 74.0)
 - reach_inch (float or null): Reach in inches — convert from inches if stated (e.g. 80" → 80.0)
 - stance (string or null): ONLY "Orthodox", "Southpaw", or "Switch" — null if not stated
+- weight (float or null): Actual body weight in pounds if explicitly stated (e.g. "170 lbs." → 170). This is the raw number — NOT the weight class name.
 
 CAREER:
 - weight_class (string or null): e.g. "Lightweight", "Middleweight", "Women's Strawweight"
 - organization (string or null): "UFC" if UFC fighter, else null
 - gym (string or null): Primary gym or team
 - fighting_out_of (string or null): City, country
+- style (string or null): Fighting style descriptor ONLY if explicitly stated in the source (e.g. "Striker", "Wrestler", "Grappler", "All-Rounder") — do NOT infer this from record or stats, null if not literally stated
 - is_active (bool): true unless explicitly retired/inactive
 - is_champion (bool): false unless explicitly stated
 - ranking (int or null): Current divisional rank

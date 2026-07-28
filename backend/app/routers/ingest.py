@@ -172,9 +172,11 @@ def _build_fighter_upsert(data: dict) -> dict:
         "date_of_birth":   data.get("date_of_birth") or None,
         "organization":    data.get("organization") or "UFC",
         "weight_class":    data.get("weight_class"),
+        "weight":          data.get("weight"),
         "height_inch":     data.get("height_inch"),
         "reach_inch":      data.get("reach_inch"),
         "stance":          stance,
+        "style":           data.get("style") or None,
         "is_active":       data.get("is_active", True),
         "is_champion":     data.get("is_champion", False),
         "ranking":         data.get("ranking"),
@@ -200,7 +202,7 @@ def _build_fighter_upsert(data: dict) -> dict:
     NULLABLE = {
         "nickname", "date_of_birth",
         "reach_inch", "fighting_out_of",
-        "ranking",
+        "ranking", "weight", "style",
     }
     return {k: v for k, v in upsert.items() if v is not None or k not in NULLABLE}
 
