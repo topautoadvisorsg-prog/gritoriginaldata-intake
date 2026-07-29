@@ -49,6 +49,7 @@ interface Fighter {
   is_verified: boolean;
   admin_status: string | null;
   notes: string | null;
+  bio: string | null;
   created_at: string | null;
 }
 
@@ -100,6 +101,7 @@ export default function FighterDetail() {
   const [pushing, setPushing] = useState(false);
   const [uploadingHead, setUploadingHead] = useState(false);
   const [uploadingBody, setUploadingBody] = useState(false);
+  const [generatingBio, setGeneratingBio] = useState(false);
   const [toast, setToast] = useState<{ msg: string; type: 'success' | 'error' } | null>(null);
 
   const showToast = (msg: string, type: 'success' | 'error' = 'success') => {
@@ -166,6 +168,20 @@ export default function FighterDetail() {
       showToast('Push failed: ' + (e?.response?.data?.detail || e.message), 'error');
     } finally {
       setPushing(false);
+    }
+  };
+
+  const handleGenerateBio = async () => {
+    if (!fighter) return;
+    setGeneratingBio(true);
+    try {
+      const res = await api.post(`/fighters/${fighter.id}/generate-bio`);
+      setFighter(prev => prev ? { ...prev, bio: res.data.bio } : prev);
+      showToast('Bio generated ✅');
+    } catch (e: any) {
+      showToast('Bio generation failed: ' + (e?.response?.data?.detail || e.message), 'error');
+    } finally {
+      setGeneratingBio(false);
     }
   };
 
@@ -537,6 +553,29 @@ export default function FighterDetail() {
               <ImageUploadCard label="Profile Headshot" url={fighter.image_url} uploading={uploadingHead} onUpload={f => handleImageUpload('headshot', f)} onClear={() => handleDeleteImage('headshot')} />
               <ImageUploadCard label="Full Body Render" url={fighter.body_image_url} uploading={uploadingBody} onUpload={f => handleImageUpload('body_shot', f)} onClear={() => handleDeleteImage('body_shot')} />
             </div>
+          </div>
+
+          <div className="glass-card rounded-[2rem] p-8">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-xs font-black uppercase tracking-[0.2em] text-accent/60 font-display">
+                Bio (Public Profile)
+              </h3>
+              <button
+                onClick={handleGenerateBio}
+                disabled={generatingBio}
+                className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-wide px-3 py-1.5 rounded-lg bg-accent/10 border border-accent/30 text-accent hover:bg-accent/20 disabled:opacity-40 transition-colors"
+              >
+                <Zap size={11} className={generatingBio ? 'animate-pulse' : ''} />
+                {generatingBio ? 'Writing...' : fighter.bio ? 'Regenerate' : 'Generate Bio'}
+              </button>
+            </div>
+            {fighter.bio ? (
+              <p className="text-sm text-muted leading-relaxed">{fighter.bio}</p>
+            ) : (
+              <p className="text-xs text-muted/40 italic">
+                No bio yet — generated from this fighter's record and fight history, shown on their GRIT profile page.
+              </p>
+            )}
           </div>
 
           {fighter.notes && (

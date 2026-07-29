@@ -1034,6 +1034,85 @@ async def restore_fighter(fighter_id: str):
         raise HTTPException(status_code=500, detail=str(e))
 
 
+@app.post("/fighters/{fighter_id}/generate-bio")
+async def generate_fighter_bio(fighter_id: str):
+    """
+    Generates a short (2-4 sentence) scouting-style bio from the fighter's own
+    stored record + fight history - never from outside knowledge or guesses.
+    Operator-triggered, not automatic, so it can be run any time (right after
+    the profile is entered, or later once fight history is in too) and
+    re-run freely if the operator wants a fresh version.
+    """
+    from anthropic import Anthropic
+    from app.prompts import BIO_SUMMARY_PROMPT
+
+    supabase = db()
+    f = supabase.table("fighters").select("*").eq("id", fighter_id).single().execute()
+    if not f.data:
+        raise HTTPException(status_code=404, detail="Fighter not found")
+    fighter = f.data
+
+    history_res = (
+        supabase.table("fight_history")
+        .select("opponent_name,result,method,event_date")
+        .eq("fighter_id", fighter_id)
+        .order("event_date", desc=True)
+        .limit(5)
+        .execute()
+    )
+    recent_bouts = history_res.data or []
+
+    perf = fighter.get("performance") or {}
+    lines = [
+        f"Name: {fighter.get('first_name')} {fighter.get('last_name')}",
+        f"Record: {fighter.get('wins', 0)}-{fighter.get('losses', 0)}-{fighter.get('draws', 0)}"
+        + (f" ({fighter['nc']} NC)" if fighter.get('nc') else ""),
+        f"Weight class: {fighter.get('weight_class') or 'unknown'}",
+    ]
+    if fighter.get("stance"):
+        lines.append(f"Stance: {fighter['stance']}")
+    if fighter.get("style"):
+        lines.append(f"Style: {fighter['style']}")
+    ko = perf.get("ko_wins") or 0
+    tko = perf.get("tko_wins") or 0
+    sub = perf.get("submission_wins") or 0
+    dec = perf.get("decision_wins") or 0
+    if ko or tko or sub or dec:
+        lines.append(f"Win methods — KO: {ko}, TKO: {tko}, Submission: {sub}, Decision: {dec}")
+    if recent_bouts:
+        lines.append("Most recent fights (newest first):")
+        for b in recent_bouts:
+            lines.append(
+                f"  - vs {b.get('opponent_name') or 'unknown'}: "
+                f"{b.get('result') or 'unknown result'} by {b.get('method') or 'unknown method'}"
+            )
+
+    user_content = "\n".join(lines)
+
+    try:
+        key = os.environ.get("ANTHROPIC_API_KEY")
+        if not key:
+            raise HTTPException(status_code=500, detail="ANTHROPIC_API_KEY is not set")
+        client = Anthropic(api_key=key)
+        msg = client.messages.create(
+            model="claude-sonnet-4-6",
+            max_tokens=300,
+            system=BIO_SUMMARY_PROMPT,
+            messages=[{"role": "user", "content": user_content}],
+        )
+        bio_text = msg.content[0].text.strip()
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Bio generation failed: {e}")
+
+    if not bio_text:
+        raise HTTPException(status_code=500, detail="Claude returned an empty bio")
+
+    supabase.table("fighters").update({"bio": bio_text}).eq("id", fighter_id).execute()
+    return {"fighter_id": fighter_id, "bio": bio_text}
+
+
 class FighterEditPayload(BaseModel):
     fields: Dict[str, str]
 

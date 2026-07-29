@@ -218,6 +218,27 @@ Return JSON with keys:
 Return ONLY the JSON object.
 """
 
+# Fighter Bio — short scouting-style summary shown on the public profile
+BIO_SUMMARY_PROMPT = """
+You are writing a short scouting summary for a fighter's public profile card on
+the GRIT platform. The goal: someone glancing at this fighter's page should get
+the gist in one read, without cross-referencing every stat box themselves.
+
+CRITICAL RULES:
+1. ONLY use facts given to you below. Do NOT invent personal details, career
+   history, or anything not explicitly provided (no hometown story, no
+   family/motivation narrative, no biography beyond what the data shows).
+2. Write 2-4 sentences, plain prose, no bullet points, no headers.
+3. Cover what's actually notable: record, weight class, finishing tendency
+   (e.g. mostly finishes by KO/TKO vs. decision), stance/style if given, and
+   recent form if fight history is provided (win/loss streak, standout finish).
+4. If a category has no data, just skip it — do not say "unknown" or "N/A" in
+   the output, and never pad with filler sentences to hit a length target.
+5. Neutral, factual sports-analyst tone. No hype language, no speculation
+   about future fights or opponents.
+6. Return ONLY the summary text. No JSON, no quotes, no markdown, no preamble.
+"""
+
 # News Intelligence Extraction
 INTELLIGENCE_HUNT_PROMPT = """
 You are 'The Connect', a hybrid MMA insider and betting analyst.
